@@ -10,8 +10,10 @@ import java.awt.GraphicsConfiguration;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -19,6 +21,7 @@ import java.util.logging.Logger;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import javax.swing.Action;
 import javax.swing.JButton;
 
@@ -31,7 +34,7 @@ import javax.swing.JButton;
  *
  * @author terooabo
  */
-public class InitTemplate extends javax.swing.JFrame {
+public class TemplateManager extends javax.swing.JFrame {
 
     private Ivy bus;
     private int xDeb = 0, xFin = 0;
@@ -42,6 +45,7 @@ public class InitTemplate extends javax.swing.JFrame {
     private Stroke stroke;
     private File fichier;
     private ArrayList<Template> listeTemplate;
+    private ArrayList<Template> listeTemplate2;
     private int i = 1;
 
     JButton saveFile;
@@ -49,7 +53,7 @@ public class InitTemplate extends javax.swing.JFrame {
     /**
      * Creates new form InitTemplate
      */
-    public InitTemplate() throws IvyException {
+    public TemplateManager() throws IvyException {
         initComponents();
 
         //How it works:
@@ -91,7 +95,7 @@ public class InitTemplate extends javax.swing.JFrame {
                     if (dragActived) {
                         System.out.println("Ajout du template");
                         stroke.normalize();
-                        listeTemplate.add(new Template("Template " + (i++), stroke));
+                        listeTemplate.add(new Template("Template" + (i++), stroke));
                     }
                 }
 
@@ -100,7 +104,7 @@ public class InitTemplate extends javax.swing.JFrame {
         });
     }
 
-//    public InitTemplate(GraphicsConfiguration gc) {
+//    public TemplateManager(GraphicsConfiguration gc) {
 //        super(gc);
 //    }
     public void saveTemplate() throws IOException {
@@ -116,11 +120,30 @@ public class InitTemplate extends javax.swing.JFrame {
         }
 
     }
-    
+
+    public void loadTemplate() throws IOException {
+        System.out.println("loadTemplate");
+        listeTemplate2 = new ArrayList<Template>();
+        BufferedReader in;
+        try {
+            in = new BufferedReader(new FileReader("templates.txt"));
+            String str;
+            while ((str = in.readLine()) != null) {
+                if (!str.trim().equals("")) {
+                    listeTemplate2.add(Template.read(str));
+                }
+            }
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        dessin();
+    }
+
     public void init(int x, int y) {
         // TODO
         stroke.addPoint(new Point2D.Double(x, y));
-        
+
         System.out.println("added x:" + x + ", y:" + y);
     }
 
@@ -128,7 +151,19 @@ public class InitTemplate extends javax.swing.JFrame {
     public void paint(Graphics _g) {
         Graphics2D g = (Graphics2D) _g;
         //Afficher le tracé!
+    }
+
+    private void dessin() {
+        Iterator<Template> iterator = listeTemplate2.iterator();
         
+        while ( iterator.hasNext()) 
+        {
+            Template nextTemp = iterator.next();
+            Graphics2D g = (Graphics2D) this.getGraphics();
+            // Dessine la liste de points de chaque stroke
+            nextTemp.dessinerStroke(g);
+        }
+
     }
 
     /**
@@ -140,16 +175,38 @@ public class InitTemplate extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jButton1 = new javax.swing.JButton();
+        buttonSave = new javax.swing.JButton();
+        buttonLoad = new javax.swing.JButton();
+        panel = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jButton1.setText("Save Template");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        buttonSave.setText("Save Template");
+        buttonSave.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                buttonSaveActionPerformed(evt);
             }
         });
+
+        buttonLoad.setText("Load Template");
+        buttonLoad.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonLoadActionPerformed(evt);
+            }
+        });
+
+        panel.setName(""); // NOI18N
+
+        javax.swing.GroupLayout panelLayout = new javax.swing.GroupLayout(panel);
+        panel.setLayout(panelLayout);
+        panelLayout.setHorizontalGroup(
+            panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        panelLayout.setVerticalGroup(
+            panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 216, Short.MAX_VALUE)
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -157,28 +214,45 @@ public class InitTemplate extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jButton1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(panel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(buttonSave)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonLoad)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton1)
+                .addContainerGap()
+                .addComponent(panel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(buttonSave)
+                    .addComponent(buttonLoad))
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSaveActionPerformed
         try {
             // TODO add your handling code here:
             saveTemplate();
         } catch (IOException ex) {
-            Logger.getLogger(InitTemplate.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TemplateManager.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_buttonSaveActionPerformed
+
+    private void buttonLoadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonLoadActionPerformed
+        try {
+            loadTemplate();
+        } catch (IOException ex) {
+            Logger.getLogger(TemplateManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_buttonLoadActionPerformed
 
     /**
      * @param args the command line arguments
@@ -197,30 +271,33 @@ public class InitTemplate extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(InitTemplate.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TemplateManager.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(InitTemplate.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TemplateManager.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(InitTemplate.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TemplateManager.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(InitTemplate.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TemplateManager.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    new InitTemplate().setVisible(true);
+                    new TemplateManager().setVisible(true);
                 } catch (IvyException ex) {
-                    Logger.getLogger(InitTemplate.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(TemplateManager.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton buttonLoad;
+    private javax.swing.JButton buttonSave;
+    private javax.swing.JPanel panel;
     // End of variables declaration//GEN-END:variables
 }
 
@@ -262,37 +339,37 @@ public class InitTemplate extends javax.swing.JFrame {
  */
 
 /*
-         setLayout(null);
-        saveFile = new JButton("Save FIle");
-        saveFile.setVisible(true);
-        saveFile.addActionListener(new ActionListener() {
+ setLayout(null);
+ saveFile = new JButton("Save FIle");
+ saveFile.setVisible(true);
+ saveFile.addActionListener(new ActionListener() {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    saveTemplate();
-                } catch (IOException ex) {
-                    Logger.getLogger(InitTemplate.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
+ @Override
+ public void actionPerformed(ActionEvent e) {
+ try {
+ saveTemplate();
+ } catch (IOException ex) {
+ Logger.getLogger(TemplateManager.class.getName()).log(Level.SEVERE, null, ex);
+ }
+ }
+ });
         
-        this.add(saveFile);
+ this.add(saveFile);
  */
 /*
-    private void saveTemplate2() throws IOException {
-        stroke.normalize();
-        System.out.println("saveTemplates");
-        byte[] data;
-        FileOutputStream out = new FileOutputStream("./res/Templates.txt");
+ private void saveTemplate2() throws IOException {
+ stroke.normalize();
+ System.out.println("saveTemplates");
+ byte[] data;
+ FileOutputStream out = new FileOutputStream("./res/Templates.txt");
 
-        ObjectOutputStream object = new ObjectOutputStream(out);
-        object.writeObject(stroke);
+ ObjectOutputStream object = new ObjectOutputStream(out);
+ object.writeObject(stroke);
 
-        out.close();
-        System.out.println("Done");
+ out.close();
+ System.out.println("Done");
 
-        dragActived = false;
-    }//Fin_saveTemplates
+ dragActived = false;
+ }//Fin_saveTemplates
 
-*/
+ */

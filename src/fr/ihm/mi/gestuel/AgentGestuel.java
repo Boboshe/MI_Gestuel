@@ -188,7 +188,6 @@ public class AgentGestuel extends JFrame {
 
     private void geste(Ivy bus) throws IvyException {
     }
-
     
     /**
      * Dessine une ellipse avec les couleurs de fond et de contour
