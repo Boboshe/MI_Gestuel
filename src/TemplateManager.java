@@ -4,6 +4,7 @@ import fr.dgac.ivy.IvyClient;
 import fr.dgac.ivy.IvyException;
 import fr.dgac.ivy.IvyMessageListener;
 import fr.ihm.mi.gestuel.Stroke;
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
@@ -29,6 +30,16 @@ import javax.swing.JButton;
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
+
+ Ajouter le bouton  supprimer les templates
+
+
+ 4 Templates:
+ - CreerRectangle
+ - CreerEllipse
+ - Déplacer (trait)
+ - Supprimer (x|)
+
  */
 /**
  *
@@ -58,7 +69,7 @@ public class TemplateManager extends javax.swing.JFrame {
 
         //How it works:
         //bus = new Ivy("nomAgent", "1ermessage", null);
-        bus = new Ivy("InitTemplate", "Agent ready", null);
+        bus = new Ivy("TemplateManager", "Agent ready", null);
         bus.start(null);
         stroke = new Stroke();
         listeTemplate = new ArrayList<>();
@@ -75,6 +86,7 @@ public class TemplateManager extends javax.swing.JFrame {
                 String propriete = args[0];
                 int x = new Integer(args[1]);
                 int y = new Integer(args[2]);
+//                stroke = new Stroke();
                 System.out.println("[IN] Propriété=" + propriete);
 
                 if (propriete.equals("MousePressed")) {
@@ -85,7 +97,7 @@ public class TemplateManager extends javax.swing.JFrame {
                 if (propriete.equals("mouseDragged")) {
                     xCur = x;
                     yCur = y;
-                    init(xCur, yCur);
+                    stockPointsInStroke(xCur, yCur);
                     dragActived = true;
                 }
                 if (propriete.equals("MouseReleased")) {
@@ -96,9 +108,10 @@ public class TemplateManager extends javax.swing.JFrame {
                         System.out.println("Ajout du template");
                         stroke.normalize();
                         listeTemplate.add(new Template("Template" + (i++), stroke));
+                        stroke = new Stroke();
+                        dragActived = false;
                     }
                 }
-
             }//Fin_received
 
         });
@@ -118,7 +131,6 @@ public class TemplateManager extends javax.swing.JFrame {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     public void loadTemplate() throws IOException {
@@ -140,28 +152,22 @@ public class TemplateManager extends javax.swing.JFrame {
         dessin();
     }
 
-    public void init(int x, int y) {
+    public void stockPointsInStroke(int x, int y) {
         // TODO
         stroke.addPoint(new Point2D.Double(x, y));
-
         System.out.println("added x:" + x + ", y:" + y);
-    }
-
-    @Override
-    public void paint(Graphics _g) {
-        Graphics2D g = (Graphics2D) _g;
-        //Afficher le tracé!
     }
 
     private void dessin() {
         Iterator<Template> iterator = listeTemplate2.iterator();
-        
-        while ( iterator.hasNext()) 
-        {
+        int i = 0;
+        while (iterator.hasNext()) {
             Template nextTemp = iterator.next();
             Graphics2D g = (Graphics2D) this.getGraphics();
             // Dessine la liste de points de chaque stroke
-            nextTemp.dessinerStroke(g);
+
+            nextTemp.dessinerStroke(g, i);
+            i++;
         }
 
     }
@@ -299,6 +305,7 @@ public class TemplateManager extends javax.swing.JFrame {
     private javax.swing.JButton buttonSave;
     private javax.swing.JPanel panel;
     // End of variables declaration//GEN-END:variables
+
 }
 
 /*

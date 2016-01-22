@@ -1,5 +1,6 @@
 package fr.ihm.mi.gestuel;
 
+import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ public class Stroke {
 
     ArrayList<Point2D.Double> listePoint;
     Point2D.Double centroid;
+    
 
         //On sauvegarde la forme normalisée (le geste)
     //=> ici sur 64 points
@@ -76,6 +78,7 @@ public class Stroke {
         return dist;
     }
 
+    //ATTENTION il y avait une coquille dans le code!
     public ArrayList<Point2D.Double> resample() {
         double l = getPathLength() / (NB_POINTS - 1);
         double D = 0;
@@ -97,7 +100,8 @@ public class Stroke {
             }
         }
         if (newPoints.size() < NB_POINTS) {
-            newPoints.add(listePoint.get(newPoints.size() - 1));
+            //[COQUILLE] corriger => newPoint en listePoint
+            newPoints.add(listePoint.get(listePoint.size() - 1));
         }
         return newPoints;
     }

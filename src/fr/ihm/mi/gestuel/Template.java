@@ -1,6 +1,7 @@
 package fr.ihm.mi.gestuel;
 
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.io.PrintWriter;
@@ -11,6 +12,8 @@ public class Template {
 
     String name;
     Stroke s;
+
+    public Color[] color = {Color.yellow, Color.blue, Color.ORANGE, Color.red};
 
     public Template(String n, Stroke s) {
         name = n;
@@ -42,13 +45,16 @@ public class Template {
         out.println("");
     }
 
-    public void dessinerStroke(Graphics2D g) {
+    public void dessinerStroke(Graphics2D g, int i) {
         Iterator<Point2D.Double> iterator = s.listePoint.iterator();
         Point2D.Double point;
+        
+        g.setColor(color[i]);
 
         while (iterator.hasNext()) {
             point = iterator.next();
             g.setStroke(new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            
             g.drawLine((int) point.getX(), (int) point.getY(), (int) point.getX(), (int) point.getY());
         }
     }

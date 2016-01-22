@@ -13,6 +13,9 @@ import fr.dgac.ivy.IvyException;
 import fr.dgac.ivy.IvyMessageListener;
 import java.awt.Color;
 import java.awt.geom.Point2D;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -28,9 +31,13 @@ public class AgentGestuel extends JFrame {
     private Color couleur;
     private int xDeb = 0, xFin = 0;
     private int yDeb = 0, yFin = 0;
+    private int xCur = 0, yCur = 0;
     private boolean dragActived = false;
     private String nomObj = "no name";
     private ArrayList<String> listNomObj = new ArrayList<>();
+    private Stroke stroke;
+    private Template template;
+    private ArrayList<Template> listeTemplate;
 
     public AgentGestuel() throws IvyException {
         super();
@@ -39,7 +46,7 @@ public class AgentGestuel extends JFrame {
         bus = new Ivy("AgentGestuel", "Agent ready", null);
 //        bus.bindMsg("^sra5 Parsed=Action:(.*) Confidence=(.*) NP=.*", new IvyMessageListener() {
 //        bus.bindMsg("^sra5 Parsed=Action:(.*) Confidence=(.*) NP=.*", new IvyMessageListener() {
-
+        stroke = new Stroke();
         palette(bus);
         geste(bus);
         voix(bus);
@@ -145,28 +152,49 @@ public class AgentGestuel extends JFrame {
     }
 
     private void palette(Ivy bus) throws IvyException {
-        bus.bindMsg("^Palette:(.*) x=(.*) y=(.*) ", new IvyMessageListener() {
+        bus.bindMsg("^Palette:(.*) x=(.*) y=(.*)", new IvyMessageListener() {
 
             @Override
             public void receive(IvyClient ic, String[] args) {
+                System.out.println("args[0]" + args[0]);
                 String propriete = args[0];
                 int x = new Integer(args[1]);
                 int y = new Integer(args[2]);
+//                stroke = new Stroke();
                 System.out.println("[IN] Propriété=" + propriete);
 
                 if (propriete.equals("MousePressed")) {
+                    System.out.println("Pressed -  x:" + x + ", y:" + y);
                     xDeb = x;
                     yDeb = y;
                 }
                 if (propriete.equals("mouseDragged")) {
+                    xCur = x;
+                    yCur = y;
+                    stockPointsInStroke(xCur, yCur);
                     dragActived = true;
-                    //Une fondtion su rle dragged
                 }
                 if (propriete.equals("MouseReleased")) {
+                    System.out.println("Released -  x:" + x + ", y:" + y);
                     xFin = x;
                     yFin = y;
+                    if (dragActived) {
+                        System.out.println("Ajout du template");
+                        stroke.normalize();
+                        try {
+                            compareToExistingTemplate(stroke);
+                        } catch (IOException ex) {
+                            Logger.getLogger(AgentGestuel.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+
+                        stroke = new Stroke();
+                        dragActived = false;
+
+                    }
                 }
-            }
+
+            }//Fin_received
+
         });
 
         bus.bindMsg("^Palette:(.*) x=(.*) y=(.*) nom=(.*)", new IvyMessageListener() {
@@ -186,9 +214,74 @@ public class AgentGestuel extends JFrame {
         });
     }
 
-    private void geste(Ivy bus) throws IvyException {
+    public void loadTemplate() throws IOException {
+        System.out.println("loadTemplate");
+        listeTemplate = new ArrayList<Template>();
+        BufferedReader in;
+        try {
+            in = new BufferedReader(new FileReader("templates.txt"));
+            String str;
+            while ((str = in.readLine()) != null) {
+                if (!str.trim().equals("")) {
+                    listeTemplate.add(Template.read(str));
+                }
+            }
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
-    
+
+    private void compareToExistingTemplate(Stroke stroke) throws IOException {
+        int i = 0, index = 0;
+        double min = 0;
+
+        //TODO
+        /* Traitement données fichier */
+        //For tous les templates
+        //Récup données du fichier
+        loadTemplate();
+
+        /* Comparaison avec Templates */
+        //Calcul distance
+        //sout de validation de reconnaissance du template
+        min = listeTemplate.get(i).getDistance(stroke);
+
+        for (i = 1; i < listeTemplate.size(); i++) {
+            if (min > listeTemplate.get(i).getDistance(stroke)) {
+                min = listeTemplate.get(i).getDistance(stroke);
+                index = i;
+            }
+
+        }
+
+        switch (index) {
+            case 0:
+                System.out.println("Creer Rectancle");
+                break;
+            case 1:
+                System.out.println("Creer Ellipse");
+                break;
+            case 2:
+                System.out.println("Déplacer");
+                break;
+            case 4:
+                System.out.println("Supprimer");
+                break;
+            default:
+                System.out.println("Commande non reconnue");
+        }
+    }
+
+    public void stockPointsInStroke(int x, int y) {
+        stroke.addPoint(new Point2D.Double(x, y));
+        System.out.println("Point added x:" + x + ", y:" + y);
+    }
+
+    private void geste(Ivy bus) throws IvyException {
+
+    }
+
     /**
      * Dessine une ellipse avec les couleurs de fond et de contour
      *
@@ -258,8 +351,8 @@ public class AgentGestuel extends JFrame {
         } catch (IvyException ex) {
             Logger.getLogger(AgentGestuel.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }	
-    
+    }
+
     public static void main(String[] args) throws IvyException {
         new AgentGestuel();
     }
