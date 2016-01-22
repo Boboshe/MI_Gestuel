@@ -48,7 +48,6 @@ public class AgentGestuel extends JFrame {
 //        bus.bindMsg("^sra5 Parsed=Action:(.*) Confidence=(.*) NP=.*", new IvyMessageListener() {
         stroke = new Stroke();
         palette(bus);
-        geste(bus);
         voix(bus);
 
         // starts the bus on the default domain
@@ -156,12 +155,11 @@ public class AgentGestuel extends JFrame {
 
             @Override
             public void receive(IvyClient ic, String[] args) {
-                System.out.println("args[0]" + args[0]);
+//                System.out.println("args[0]" + args[0]);
                 String propriete = args[0];
                 int x = new Integer(args[1]);
                 int y = new Integer(args[2]);
-//                stroke = new Stroke();
-                System.out.println("[IN] Propriété=" + propriete);
+//                System.out.println("[IN] Propriété=" + propriete);
 
                 if (propriete.equals("MousePressed")) {
                     System.out.println("Pressed -  x:" + x + ", y:" + y);
@@ -186,7 +184,6 @@ public class AgentGestuel extends JFrame {
                         } catch (IOException ex) {
                             Logger.getLogger(AgentGestuel.class.getName()).log(Level.SEVERE, null, ex);
                         }
-
                         stroke = new Stroke();
                         dragActived = false;
 
@@ -257,29 +254,25 @@ public class AgentGestuel extends JFrame {
 
         switch (index) {
             case 0:
-                System.out.println("Creer Rectancle");
+                System.out.println("Creer Rectancle\n");
                 break;
             case 1:
-                System.out.println("Creer Ellipse");
+                System.out.println("Creer Ellipse\n");
                 break;
             case 2:
-                System.out.println("Déplacer");
+                System.out.println("Déplacer\n");
                 break;
-            case 4:
-                System.out.println("Supprimer");
+            case 3:
+                System.out.println("Supprimer\n");
                 break;
             default:
-                System.out.println("Commande non reconnue");
+                System.out.println("Commande non reconnue\n");
         }
     }
 
     public void stockPointsInStroke(int x, int y) {
         stroke.addPoint(new Point2D.Double(x, y));
-        System.out.println("Point added x:" + x + ", y:" + y);
-    }
-
-    private void geste(Ivy bus) throws IvyException {
-
+//        System.out.println("Point added x:" + x + ", y:" + y);
     }
 
     /**

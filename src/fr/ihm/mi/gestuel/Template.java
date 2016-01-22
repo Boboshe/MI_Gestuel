@@ -21,14 +21,14 @@ public class Template {
     }
 
     public double getDistance(Stroke str) {
-        double dist = 0.0;
+        double dist = 10e9;
 
         for (int i = 0; i < s.size(); i++) {
             Point2D.Double pTemplate = s.getPoint(i);
             Point2D.Double p = str.getPoint(i);
             dist += p.distance(pTemplate);
         }
-
+        System.out.println("Dist = " + dist);
         return dist;
     }
 
@@ -48,13 +48,13 @@ public class Template {
     public void dessinerStroke(Graphics2D g, int i) {
         Iterator<Point2D.Double> iterator = s.listePoint.iterator();
         Point2D.Double point;
-        
+
         g.setColor(color[i]);
 
         while (iterator.hasNext()) {
             point = iterator.next();
             g.setStroke(new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            
+
             g.drawLine((int) point.getX(), (int) point.getY(), (int) point.getX(), (int) point.getY());
         }
     }
