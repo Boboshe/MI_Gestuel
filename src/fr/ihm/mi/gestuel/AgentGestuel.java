@@ -12,6 +12,7 @@ import fr.dgac.ivy.IvyClient;
 import fr.dgac.ivy.IvyException;
 import fr.dgac.ivy.IvyMessageListener;
 import java.awt.Color;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -258,11 +259,10 @@ public class AgentGestuel extends JFrame {
         } catch (IvyException ex) {
             Logger.getLogger(AgentGestuel.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
+    }	
+    
     public static void main(String[] args) throws IvyException {
         new AgentGestuel();
-
     }
 
 }
