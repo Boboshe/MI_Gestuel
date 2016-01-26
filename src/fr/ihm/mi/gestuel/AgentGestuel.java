@@ -29,7 +29,8 @@ public class AgentGestuel extends JFrame {
 
     private Ivy bus;
     private JPanel jp1 = new JPanel();
-    private Color couleur;
+    private Color couleurFond;
+    private Color couleurContour;
     private int xDeb = 0, xFin = 0;
     private int yDeb = 0, yFin = 0;
     private int xCur = 0, yCur = 0;
@@ -41,6 +42,9 @@ public class AgentGestuel extends JFrame {
     private ArrayList<Template> listeTemplate;
     private Automate myAutomate;
 
+    private boolean positionStated = false;
+    private boolean colorStated = false;
+
     public AgentGestuel() throws IvyException {
         super();
 //        this.setVisible(true);
@@ -50,6 +54,7 @@ public class AgentGestuel extends JFrame {
 //        bus.bindMsg("^sra5 Parsed=Action:(.*) Confidence=(.*) NP=.*", new IvyMessageListener() {
         stroke = new Stroke();
         myAutomate = new Automate();
+
         palette(bus);
         voix(bus);
 
@@ -60,7 +65,6 @@ public class AgentGestuel extends JFrame {
 
     private void voix(Ivy bus) throws IvyException {
         bus.bindMsg("^sra5 Text=(.*) Confidence=(.*)", new IvyMessageListener() {
-
             //Info regex: 
             //(.*) => ça c'est recuperer
             // .*  => ça c'est trash
@@ -69,7 +73,7 @@ public class AgentGestuel extends JFrame {
                 System.out.println("[IN] Text=" + args[0]);
                 String c = args[1].replace(",", ".");
                 float confidence = Float.parseFloat(c);
-                float seuil = (float) 0.4;
+                float seuil = (float) 0.7;
                 System.out.println("[IN] Confidence=" + confidence);
 //                System.out.println("Confidence=" + args[1]);
 
@@ -77,7 +81,7 @@ public class AgentGestuel extends JFrame {
                     System.out.println("Confidence:" + confidence + " < " + seuil);
                     System.out.println("Pas bien reconnu car confiance inférieure au seuil!\n");
                 } else { //OK
-                    System.out.println("Confidence:" + confidence + " >= 0.4");
+                    System.out.println("Confidence:" + confidence + " >= " + seuil);
 
                     //Placement
                     //contains > equals : permet d'ignorer le garbage
@@ -118,30 +122,23 @@ public class AgentGestuel extends JFrame {
                 //In: x, y
                 //Dans la palette
                 //Out: cmd de placement
+                positionStated = true;
             }
 
-            private void colorer(String[] args) {
+            private void colorer(String[] args) { //Faire couleurFond et couleurContour
+                String[] splitArray = null;
+                splitArray = args[0].split(" ");
                 //Analyse de la couleur
                 //In: args
                 //Out: cmd de coloration
-                if (args[0].equals("noir")) {
-                    couleur = Color.BLACK;
-                }
-                if (args[0].equals("bleu")) {
-                    couleur = Color.BLUE;
-                }
-                if (args[0].equals("rouge")) {
-                    couleur = Color.RED;
-                }
-                if (args[0].equals("vert")) {
-                    couleur = Color.GREEN;
-                }
-                if (args[0].equals("jaune")) {
-                    couleur = Color.YELLOW;
-                }
-                if (args[0].equals("orange")) {
-                    couleur = Color.ORANGE;
-                }
+                String couleurFondArg = splitArray[0];
+                String couleurContourArg = splitArray[1];
+                System.out.println("CouleurFond: " + couleurFondArg + ", CouleurContour: " + couleurContourArg);
+
+                couleurFond = recognizeColor(couleurFondArg);
+                couleurContour = recognizeColor(couleurContourArg);
+                
+                colorStated = true;
             }
 
             private void deplacer() {
@@ -149,6 +146,32 @@ public class AgentGestuel extends JFrame {
                 //In: x, y
                 //Out: cmd de placement
 
+            }
+
+            private Color recognizeColor(String couleur) {
+                //Couleur par défaut
+                Color color = Color.BLACK;
+                        
+                if (couleur.equals("noir")) {
+                    color = Color.BLACK;
+                }
+                if (couleur.equals("bleu")) {
+                    color = Color.BLUE;
+                }
+                if (couleur.equals("rouge")) {
+                    color = Color.RED;
+                }
+                if (couleur.equals("vert")) {
+                    color = Color.GREEN;
+                }
+                if (couleur.equals("jaune")) {
+                    color = Color.YELLOW;
+                }
+                if (couleur.equals("orange")) {
+                    color = Color.ORANGE;
+                }
+                //de cette couleur
+                return color;
             }
         });
     }
@@ -169,11 +192,15 @@ public class AgentGestuel extends JFrame {
                     xDeb = x;
                     yDeb = y;
                 }
-                if (propriete.equals("mouseDragged")) {
+                if (propriete.equals("MouseDragged")) {
                     xCur = x;
                     yCur = y;
                     stockPointsInStroke(xCur, yCur);
                     dragActived = true;
+                }
+                if (propriete.equals("MouseMoved")) {
+                    xCur = x;
+                    yCur = y;
                 }
                 if (propriete.equals("MouseReleased")) {
                     System.out.println("Released -  x:" + x + ", y:" + y);
@@ -258,26 +285,35 @@ public class AgentGestuel extends JFrame {
         switch (index) {
             case 0:
                 System.out.println("Creer Rectancle\n");
-                if(Etat.CreationRectangle == myAutomate.changeState(Etat.CreationRectangle))
-                {
-                    creerRectangle(100, 100, 100, 100);
+                if (Etat.CreationRectangle == myAutomate.changeState(Etat.CreationRectangle)) {
+
+                    if (positionStated && colorStated) {
+                        creerRectangle(xCur, yCur, 100, 200, couleurFond, couleurContour);
+                    } else if (positionStated) {
+                        creerRectangle(xCur, yCur, 100, 100);
+                    }
                     myAutomate.setToIdle();
                 }
-                
+
                 break;
             case 1:
                 System.out.println("Creer Ellipse\n");
-                if(Etat.CreationEllipse == myAutomate.changeState(Etat.CreationEllipse))
-                {
-                    creerEllipse(100, 100, 100, 100);
+                if (Etat.CreationEllipse == myAutomate.changeState(Etat.CreationEllipse)) {
+                    if (positionStated && colorStated) {
+                        creerEllipse(xCur, yCur, 100, 200, couleurFond, couleurContour);
+                    } else if (positionStated) {
+                        creerEllipse(xCur, yCur, 100, 100);
+                    }
                     myAutomate.setToIdle();
                 }
                 break;
             case 2:
                 System.out.println("Déplacer\n");
+
                 break;
             case 3:
                 System.out.println("Supprimer\n");
+
                 break;
             default:
                 System.out.println("Commande non reconnue\n");
@@ -355,6 +391,30 @@ public class AgentGestuel extends JFrame {
     public void creerRectangle(int x, int y, int longueur, int hauteur) {
         try {
             bus.sendMsg("Palette:CreerRectangle x=" + x + " y=" + y + " longueur=" + longueur + " hauteur=" + hauteur);
+        } catch (IvyException ex) {
+            Logger.getLogger(AgentGestuel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void deplacer(String nom, int x, int y) {
+        try {
+            bus.sendMsg("Palette:DeplacerObjet nom=" + nom + " x=" + x + " y=" + y);
+        } catch (IvyException ex) {
+            Logger.getLogger(AgentGestuel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void supprimer(String nom, int x, int y) {
+        try {
+            bus.sendMsg("Palette:DeplacerObjet nom=" + nom + " x=" + x + " y=" + y);
+        } catch (IvyException ex) {
+            Logger.getLogger(AgentGestuel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void resultatTesterPoint(int x, int y, String nom) {
+        try {
+            bus.sendMsg("Palette:DeplacerObjet x=" + x + " y=" + y + " nom=" + nom);
         } catch (IvyException ex) {
             Logger.getLogger(AgentGestuel.class.getName()).log(Level.SEVERE, null, ex);
         }
