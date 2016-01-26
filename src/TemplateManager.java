@@ -78,7 +78,7 @@ public class TemplateManager extends javax.swing.JFrame {
         //le 1er (.*) est stocké dans le 1er argument du tableau de String du receive
         //le 2eme (.*) est stocké dans le 2eme argument du tableau de String du receive
         //etc...
-        bus.bindMsg("^Palette:(.*) x=(.*) y=(.*)", new IvyMessageListener() {
+        bus.bindMsg("^Palette:(.*) x=(.*) y=(.*) longueur=(.*) hauteur=(.*) couleurFond=(.*) couleurContour=(.*)", new IvyMessageListener() {
 
             @Override
             public void receive(IvyClient ic, String[] args) {

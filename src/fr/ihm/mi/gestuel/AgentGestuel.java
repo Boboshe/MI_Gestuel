@@ -11,6 +11,7 @@ import fr.dgac.ivy.Ivy;
 import fr.dgac.ivy.IvyClient;
 import fr.dgac.ivy.IvyException;
 import fr.dgac.ivy.IvyMessageListener;
+import fr.ihm.mi.gestuel.Automate.Etat;
 import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.io.BufferedReader;
@@ -38,6 +39,7 @@ public class AgentGestuel extends JFrame {
     private Stroke stroke;
     private Template template;
     private ArrayList<Template> listeTemplate;
+    private Automate myAutomate;
 
     public AgentGestuel() throws IvyException {
         super();
@@ -47,6 +49,7 @@ public class AgentGestuel extends JFrame {
 //        bus.bindMsg("^sra5 Parsed=Action:(.*) Confidence=(.*) NP=.*", new IvyMessageListener() {
 //        bus.bindMsg("^sra5 Parsed=Action:(.*) Confidence=(.*) NP=.*", new IvyMessageListener() {
         stroke = new Stroke();
+        myAutomate = new Automate();
         palette(bus);
         voix(bus);
 
@@ -255,9 +258,20 @@ public class AgentGestuel extends JFrame {
         switch (index) {
             case 0:
                 System.out.println("Creer Rectancle\n");
+                if(Etat.CreationRectangle == myAutomate.changeState(Etat.CreationRectangle))
+                {
+                    creerRectangle(100, 100, 100, 100);
+                    myAutomate.setToIdle();
+                }
+                
                 break;
             case 1:
                 System.out.println("Creer Ellipse\n");
+                if(Etat.CreationEllipse == myAutomate.changeState(Etat.CreationEllipse))
+                {
+                    creerEllipse(100, 100, 100, 100);
+                    myAutomate.setToIdle();
+                }
                 break;
             case 2:
                 System.out.println("Déplacer\n");
