@@ -13,11 +13,14 @@ import fr.dgac.ivy.IvyException;
 import fr.dgac.ivy.IvyMessageListener;
 import fr.ihm.mi.gestuel.Automate.Etat;
 import java.awt.Color;
+import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -26,6 +29,9 @@ import javax.swing.JPanel;
  * @author boulbamo
  */
 public class AgentGestuel extends JFrame {
+
+    public static final Color DEFAULT_COLOR = Color.BLACK;
+    public static final Point DEFAULT_POSITION = new Point(50, 50);
 
     private Ivy bus;
     private JPanel jp1 = new JPanel();
@@ -41,6 +47,7 @@ public class AgentGestuel extends JFrame {
     private Template template;
     private ArrayList<Template> listeTemplate;
     private Automate myAutomate;
+    private Timer timer;
 
     private boolean positionStated = false;
     private boolean colorStated = false;
@@ -137,7 +144,7 @@ public class AgentGestuel extends JFrame {
 
                 couleurFond = recognizeColor(couleurFondArg);
                 couleurContour = recognizeColor(couleurContourArg);
-                
+
                 colorStated = true;
             }
 
@@ -151,7 +158,7 @@ public class AgentGestuel extends JFrame {
             private Color recognizeColor(String couleur) {
                 //Couleur par défaut
                 Color color = Color.BLACK;
-                        
+
                 if (couleur.equals("noir")) {
                     color = Color.BLACK;
                 }
@@ -199,8 +206,11 @@ public class AgentGestuel extends JFrame {
                     dragActived = true;
                 }
                 if (propriete.equals("MouseMoved")) {
-                    xCur = x;
-                    yCur = y;
+                    //Ne récupère la position que si un prédicat vocal a été émis
+                    if (positionStated) {
+                        xCur = x;
+                        yCur = y;
+                    }
                 }
                 if (propriete.equals("MouseReleased")) {
                     System.out.println("Released -  x:" + x + ", y:" + y);
@@ -262,6 +272,12 @@ public class AgentGestuel extends JFrame {
     private void compareToExistingTemplate(Stroke stroke) throws IOException {
         int i = 0, index = 0;
         double min = 0;
+        Color myColorFond = DEFAULT_COLOR;
+        Color myColorContour = DEFAULT_COLOR;
+        Point myPosition = DEFAULT_POSITION;
+
+        long startForColor, startForPosition;
+        long endForColor, endForPosition;
 
         //TODO
         /* Traitement données fichier */
@@ -284,18 +300,48 @@ public class AgentGestuel extends JFrame {
 
         switch (index) {
             case 0:
-                System.out.println("Creer Rectancle\n");
+                System.out.println("Creation du Rectancle\n");
+                //On vérifie que le changement d'Etat est possible, et
+                //On fait le changement d'Etat
+                //On execute l'action
+                //Puis on reviens dans l'Etat Idle
                 if (Etat.CreationRectangle == myAutomate.changeState(Etat.CreationRectangle)) {
 
-                    if (positionStated && colorStated) {
-                        creerRectangle(xCur, yCur, 100, 200, couleurFond, couleurContour);
-                    } else if (positionStated) {
-                        creerRectangle(xCur, yCur, 100, 100);
+//                    if (positionStated && colorStated) {
+//                        creerRectangle(xCur, yCur, 100, 200, couleurFond, couleurContour);
+//                    }
+                    startForPosition = System.currentTimeMillis();
+                    endForPosition = startForPosition + (10 * 1000);
+                    System.out.println("1er while");
+                    while (System.currentTimeMillis() < endForPosition) {
+                        System.out.print("-");
+                        if (positionStated) {
+                            if (Etat.Positionnement == myAutomate.changeState(Etat.Positionnement)) {
+                                myPosition.setLocation(xCur, yCur);
+//                                myPosition.x = xCur;
+//                                myPosition.y = yCur;
+                            }
+                        }
                     }
+                    
+                    System.out.println("2eme while");
+                    startForColor = System.currentTimeMillis();
+                    endForColor = startForColor + (10 * 1000);
+                    while (System.currentTimeMillis() < endForColor) {
+                        if (colorStated) {
+                            if (Etat.Coloration == myAutomate.changeState(Etat.Coloration)) {
+                                //creerRectangle(xCur, yCur, 100, 200, couleurFond, couleurContour);
+                                myColorContour = couleurContour;
+                                myColorFond = couleurFond;
+                            }
+                        }
+                    }
+                    System.out.println("**************** Rectangle créer");
+                    creerRectangle(myPosition.x, myPosition.y, 100, 100, myColorFond, myColorContour);
                     myAutomate.setToIdle();
                 }
-
                 break;
+
             case 1:
                 System.out.println("Creer Ellipse\n");
                 if (Etat.CreationEllipse == myAutomate.changeState(Etat.CreationEllipse)) {
