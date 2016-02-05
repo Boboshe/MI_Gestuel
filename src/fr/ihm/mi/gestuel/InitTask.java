@@ -24,6 +24,10 @@ public class InitTask extends TimerTask{
         return over;
     }
 
+    public InitTask() {
+        over = false;
+    }
+    
     public InitTask(AutomateMI myAutomate) {
         super();
         this.myAutomate = myAutomate;
@@ -33,8 +37,8 @@ public class InitTask extends TimerTask{
     @Override
     public void run() {
         over = true;
-        System.out.println("Timer retour à Idle");
-        myAutomate.changeState(AutomateMI.Etat.Idle);        
+//        System.out.println("Fin timer Timer retour à Idle");
+//        myAutomate.changeState(AutomateMI.Etat.Idle);        
     }
     
     

@@ -33,7 +33,7 @@ public class AgentGestuel extends JFrame {
     public static final Color DEFAULT_COLOR = Color.BLACK;
     public static final Point DEFAULT_POSITION = new Point(50, 50);
 
-    private Ivy busGeste, busPosition, busCouleur, busObjet;
+    private static Ivy busGeste, busPosition, busCouleur, busObjet;
     private JPanel jp1 = new JPanel();
     private Color couleurFond;
     private Color couleurContour;
@@ -72,7 +72,6 @@ public class AgentGestuel extends JFrame {
         busCouleur = new Ivy("Detection de la couleur", "Agent couleur ready", null);
         busObjet = new Ivy("Detection de la objet", "Agent objet ready", null);
 
-        
         /*
          Fonctionne => OK
          Le but c'est de les utiliser quand on en a besoin!
@@ -98,6 +97,8 @@ public class AgentGestuel extends JFrame {
     }
 
     private void voixPosition(Ivy bus) throws IvyException {
+        
+        bus.waitForMsg("^sra5 Text=(.*) Confidence=(.*)", 5*1000); //<=================================================================== Je crois que c'est ça.
         bus.bindMsg("^sra5 Text=(.*) Confidence=(.*)", new IvyMessageListener() {
             //Info regex: 
             //(.*) => ça c'est recuperer
@@ -108,14 +109,14 @@ public class AgentGestuel extends JFrame {
                 String c = args[1].replace(",", ".");
                 float confidence = Float.parseFloat(c);
                 float seuil = (float) 0.7;
-                System.out.println("[IN] Confidence=" + confidence);
-//                System.out.println("Confidence=" + args[1]);
+//                System.out.println("[IN] Confidence=" + confidence);
+                System.out.println("Confidence=" + args[1]);
 
                 if (confidence < seuil) { //KO
-                    System.out.println("Confidence:" + confidence + " < " + seuil);
+//                    System.out.println("Confidence:" + confidence + " < " + seuil);
                     System.out.println("Pas bien reconnu car confiance inférieure au seuil!\n");
                 } else { //OK
-                    System.out.println("Confidence:" + confidence + " >= " + seuil);
+//                    System.out.println("Confidence:" + confidence + " >= " + seuil);
 
                     //Position
                     //contains > equals : permet d'ignorer le garbage
@@ -132,6 +133,7 @@ public class AgentGestuel extends JFrame {
 
             private void positionFind() {
                 positionStated = true;
+                System.out.println("Position find, positionStated=" + positionStated);
             }
 
         });
@@ -148,10 +150,10 @@ public class AgentGestuel extends JFrame {
                 System.out.println("[IN] Confidence=" + confidence);
 
                 if (confidence < seuil) { //KO
-                    System.out.println("Confidence:" + confidence + " < " + seuil);
+//                    System.out.println("Confidence:" + confidence + " < " + seuil);
                     System.out.println("Pas bien reconnu car confiance inférieure au seuil!\n");
                 } else { //OK
-                    System.out.println("Confidence:" + confidence + " >= " + seuil);
+//                    System.out.println("Confidence:" + confidence + " >= " + seuil);
 
                     //Couleur
                     if (args[0].contains("noir")
@@ -185,6 +187,7 @@ public class AgentGestuel extends JFrame {
                 couleurContour = recognizeColor(couleurContourArg);
 
                 colorStated = true;
+                System.out.println("Color find, colorStated=" + colorStated);
             }
 
             private Color recognizeColor(String couleur) {
@@ -219,17 +222,17 @@ public class AgentGestuel extends JFrame {
         bus.bindMsg("^sra5 Text=(.*) Confidence=(.*)", new IvyMessageListener() {
             @Override
             public void receive(IvyClient ic, String[] args) {
-                System.out.println("[IN] Text=" + args[0]);
+//                System.out.println("[IN] Text=" + args[0]);
                 String c = args[1].replace(",", ".");
                 float confidence = Float.parseFloat(c);
                 float seuil = (float) 0.7;
-                System.out.println("[IN] Confidence=" + confidence);
+//                System.out.println("[IN] Confidence=" + confidence);
 
                 if (confidence < seuil) { //KO
-                    System.out.println("Confidence:" + confidence + " < " + seuil);
+//                    System.out.println("Confidence:" + confidence + " < " + seuil);
                     System.out.println("Pas bien reconnu car confiance inférieure au seuil!\n");
                 } else { //OK
-                    System.out.println("Confidence:" + confidence + " >= " + seuil);
+//                    System.out.println("Confidence:" + confidence + " >= " + seuil);
 
                     //Objet
                     if (args[0].contains("cet objet")
@@ -375,15 +378,18 @@ public class AgentGestuel extends JFrame {
                 if (myAutomate.changeState(Etat.CreationRectangle)) {
                     //Activation Timer
 
-                    myTimer.schedule(idleTask, 10*1000); //TimerCreerRectangle
+                    myTimer.schedule(idleTask, 10 * 1000); //TimerCreerRectangle
                     System.out.println("timerCR");
                     startDetectionPosition();
-                    startDetectionCouleur();
+//                    startDetectionCouleur();
                     //Tant que le timer n'a pas fini...
                     System.out.println("Attente d'une information vocale...");
                     while (!idleTask.isOver()) {
+                        System.out.print(".");
                         //Si une position ou une couleur à été dites...
                         if (positionStated) { //|| colorStated
+                            myPosition.setLocation(xCur, yCur);
+                            stopDetectionPosition();
                             //on arrête le timer et on fini la tâche
                             System.out.println("position ou couleur trouvée");
                             myTimer.cancel();
@@ -394,13 +400,16 @@ public class AgentGestuel extends JFrame {
                                 System.out.println("Position trouvée");
                                 //On passe dans l'état Positionnement
                                 if (myAutomate.changeState(Etat.Positionnement)) {
-                                    myPosition.setLocation(xCur, yCur);
-                                    stopDetectionPosition();
+//                                    myPosition.setLocation(xCur, yCur);
+//                                    stopDetectionPosition();
 
                                     restartDetectionCouleur();
 
-                                    myTimer.schedule(idleTask, 10*1000); //TimerPos
-                                    System.out.println("timerPos");
+                                    myTimer = new Timer();
+                                    idleTask = new InitTask();
+                                    myTimer.schedule(idleTask, 10 * 1000); //TimerPos
+                                    System.out.println("\ntimerColor");
+                                    System.out.println("Attente d'une information vocale...");
                                     while (!idleTask.isOver()) {
                                         if (colorStated) {
                                             System.out.println("Couleur trouvée");
@@ -410,7 +419,7 @@ public class AgentGestuel extends JFrame {
                                                 stopDetectionCouleur();
                                             }
                                         }
-                                    }
+                                    }//Fin_while
 
                                 }
                             }
@@ -423,7 +432,9 @@ public class AgentGestuel extends JFrame {
 //                            }
 //                        idleTask.setOver(true);    
                         } //Fin_if_po-color
-                    }//Fin_while
+                    }//Fin_while => Timer terminé
+                    System.out.println("Fin timer Timer retour à Idle");
+                    myAutomate.changeState(AutomateMI.Etat.Idle);
 
                     System.out.println("**************** Rectangle créée");
                     creerRectangle(myPosition.x, myPosition.y, 100, 100, myColorFond, myColorContour);
@@ -453,6 +464,7 @@ public class AgentGestuel extends JFrame {
 
     public void stopDetectionPosition() throws IvyException {
         busPosition.stop();
+        System.out.println("Arrêt de la detection de Position");
     }
 
     private void restartDetectionPosition() throws IvyException {
@@ -616,18 +628,19 @@ public class AgentGestuel extends JFrame {
         new AgentGestuel();
     }
 
-    private void startTimerPosition() {
-        timerPositionStart = System.currentTimeMillis();
-        timerPositionStop = timerPositionStart + (10 * 1000); //10 sec
-    }
+    /*
+     private void startTimerPosition() {
+     timerPositionStart = System.currentTimeMillis();
+     timerPositionStop = timerPositionStart + (10 * 1000); //10 sec
+     }
 
-    private void startTimerCouleur() {
-        timerColorStart = System.currentTimeMillis();
-        timerColorStop = timerColorStart + (10 * 1000); //10 sec
-    }
+     private void startTimerCouleur() {
+     timerColorStart = System.currentTimeMillis();
+     timerColorStop = timerColorStart + (10 * 1000); //10 sec
+     }
 
-    private void startTimerObjet() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
+     private void startTimerObjet() {
+     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+     }
+     */
 }
