@@ -70,10 +70,10 @@ public class AgentGestuel extends JFrame {
         idleTask = new InitTask(myAutomate);
 
         palette(bus);
-        voix(bus); 
-        
+        voix(bus);
+
         bus.start(null);
-        
+
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
@@ -85,7 +85,6 @@ public class AgentGestuel extends JFrame {
             // .*  => ça c'est trash
             @Override
             public void receive(IvyClient ic, String[] args) {
-                System.out.println("POSITION");
                 System.out.println("[IN] Text=" + args[0]);
                 String c = args[1].replace(",", ".");
                 float confidence = Float.parseFloat(c);
@@ -103,7 +102,7 @@ public class AgentGestuel extends JFrame {
                             || args[0].contains("la")
                             || args[0].contains("a cette position")
                             || args[0].contains("a cet endroit")) {
-                        System.out.println("[RECONNU] Text=" + args[0]);
+                        System.out.println("[POSITION RECONNU] Text=" + args[0]);
                         positionFind();
                     }
 
@@ -115,19 +114,19 @@ public class AgentGestuel extends JFrame {
                             || args[0].contains("orange")
                             || args[0].contains("jaune")
                             || args[0].contains("vert")) {
-                        System.out.println("[RECONNU] Text=" + args[0]);
+                        System.out.println("[COULEUR RECONNU] Text=" + args[0]);
                         colorsFind(args);
                     }
 
                     if (args[0].contains("de cette couleur")) {
-
+                        //Il faut capter la couleur de l'objet désigné
                     }
 
                     //Objet
                     if (args[0].contains("cet objet")
                             || args[0].contains("ce rectangle")
                             || args[0].contains("cette ellipse")) {
-                        System.out.println("[RECONNU] Text=" + args[0]);
+                        System.out.println("[OBJET RECONNU] Text=" + args[0]);
                         objectFind();
                     }
 
@@ -318,7 +317,7 @@ public class AgentGestuel extends JFrame {
                     //Activation Timer
                     myTimer.schedule(idleTask, 10 * 1000); //TimerCreerRectangle
                     System.out.println("timerCR");
-                    
+
                     //Tant que le timer n'a pas fini...
                     System.out.println("Attente d'une information vocale...");
                     while (!idleTask.isOver()) {
@@ -394,7 +393,9 @@ public class AgentGestuel extends JFrame {
 //        System.out.println("Point added x:" + x + ", y:" + y);
     }
 
-    /** CREATION **/
+    /**
+     * CREATION *
+     */
     /**
      * Dessine une rectangle avec les couleurs de fond et de contour
      *
