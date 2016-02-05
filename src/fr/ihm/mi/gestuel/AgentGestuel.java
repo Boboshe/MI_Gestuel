@@ -70,7 +70,7 @@ public class AgentGestuel extends JFrame {
         idleTask = new InitTask(myAutomate);
 
         palette(bus);
-        voix(bus);
+//        voix(bus); // dans => compareToExistingTemplate
 
         bus.start(null);
 
@@ -238,14 +238,20 @@ public class AgentGestuel extends JFrame {
                     stockPointsInStroke(xCur, yCur);
                     dragActived = true;
                 }
+                if (propriete.equals("MouseClicked")) {
+//                    if (positionStated) {
+                        xCur = x;
+                        yCur = y;
+//                    }
+                }
 
                 if (propriete.equals("MouseMoved")) {
                     //Ne récupère la position que si un prédicat vocal a été émis
-                    if (positionStated) {
-//                        System.out.println("MouseMoved");
-                        xCur = x;
-                        yCur = y;
-                    }
+//                    if (positionStated) {
+//                        System.out.print("MouseMoved");
+                    xCur = x;
+                    yCur = y;
+//                    }
                 }
                 if (propriete.equals("MouseReleased")) {
                     System.out.println("Released -  x:" + x + ", y:" + y);
@@ -331,6 +337,7 @@ public class AgentGestuel extends JFrame {
                 index = i;
             }
         }
+        voix(bus);
 
         /**
          * * ACTIONS **
@@ -374,7 +381,7 @@ public class AgentGestuel extends JFrame {
                                     restartTache();
                                     initTache(); //TimerPos
                                     System.out.println("xCur: " + xCur + ", yCur: " + yCur);
-                                    
+
                                     System.out.println("\ntimerColor");
                                     System.out.println("Attente d'une information vocale [COULEUR]...\n");
                                     while (!idleTask.isOver()) {
@@ -403,8 +410,8 @@ public class AgentGestuel extends JFrame {
                     }//Fin_while
                     idleTask.setOver(false);
                     System.out.println("**************** Rectangle créée");
-                    System.out.print("myColorContour: " + recognizeColor(myColorContour));
-                    System.out.println(", myColorFond: " + recognizeColor(myColorFond));
+                    System.out.print("myColorFond: " + recognizeColor(myColorFond));
+                    System.out.println(", myColorContour: " + recognizeColor(myColorContour));
                     creerRectangle(myPosition.x, myPosition.y, 100, 100, myColorFond, myColorContour);
 
                     System.out.println("Retour à Idle");
