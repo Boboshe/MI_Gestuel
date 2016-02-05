@@ -34,8 +34,8 @@ public class AutomateMI {
 
         boolean changeStateOK = false;
         
-        System.out.println("> Mode Actuel :" + currentState);
-        System.out.println("Demande de changement d'état vers: " + state);
+        System.out.println("\n> Mode Actuel :" + currentState);
+        System.out.println("> Demande de changement d'état vers: " + state);
         switch (currentState) {
             case Idle:
                 switch (state) {
@@ -44,22 +44,22 @@ public class AutomateMI {
                         changeStateOK = false;
                         break;
                     case CreationRectangle:
-                        System.out.println("Mode CreationRectangle");
+                        System.out.println("Mode CreationRectangle\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
                     case CreationEllipse:
-                        System.out.println("Mode CreationEllipse");
+                        System.out.println("Mode CreationEllipse\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
                     case Deplacement:
-                        System.out.println("Mode Deplacement");
+                        System.out.println("Mode Deplacement\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
                     case Suppression:
-                        System.out.println("Mode Suppression");
+                        System.out.println("Mode Suppression\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -85,7 +85,7 @@ public class AutomateMI {
             case CreationRectangle:
                 switch (state) {
                     case Idle:
-                        System.out.println("Mode Idle");
+                        System.out.println("Mode Idle\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -106,12 +106,12 @@ public class AutomateMI {
                         changeStateOK = false;
                         break;
                     case Positionnement:
-                        System.out.println("Mode Positionnement");
+                        System.out.println("Mode Positionnement\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
                     case Coloration:
-                        System.out.println("Mode Coloration");
+                        System.out.println("Mode Coloration\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -129,7 +129,7 @@ public class AutomateMI {
             case CreationEllipse:
                 switch (state) {
                     case Idle:
-                        System.out.println("Mode Idle");
+                        System.out.println("Mode Idle\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -150,12 +150,12 @@ public class AutomateMI {
                         changeStateOK = false;
                         break;
                     case Positionnement:
-                        System.out.println("Mode Positionnement");
+                        System.out.println("Mode Positionnement\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
                     case Coloration:
-                        System.out.println("Mode Coloration");
+                        System.out.println("Mode Coloration\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -173,7 +173,7 @@ public class AutomateMI {
             case Deplacement:
                 switch (state) {
                     case Idle:
-                        System.out.println("Mode Idle");
+                        System.out.println("Mode Idle\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -194,7 +194,7 @@ public class AutomateMI {
                         changeStateOK = false;
                         break;
                     case Positionnement:
-                        System.out.println("Mode Positionnement");
+                        System.out.println("Mode Positionnement\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -203,7 +203,7 @@ public class AutomateMI {
                         changeStateOK = false;
                         break;
                     case Pointage:
-                        System.out.println("Mode Pointage");
+                        System.out.println("Mode Pointage\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -217,7 +217,7 @@ public class AutomateMI {
             case Suppression:
                 switch (state) {
                     case Idle:
-                        System.out.println("Mode Idle");
+                        System.out.println("Mode Idle\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -246,7 +246,7 @@ public class AutomateMI {
                         changeStateOK = false;
                         break;
                     case Pointage:
-                        System.out.println("Mode Pointage");
+                        System.out.println("Mode Pointage\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -260,7 +260,7 @@ public class AutomateMI {
             case Positionnement:
                 switch (state) {
                     case Idle:
-                        System.out.println("Mode Idle");
+                        System.out.println("Mode Idle\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -285,12 +285,12 @@ public class AutomateMI {
                         changeStateOK = false;
                         break;
                     case Coloration:
-                        System.out.println("Mode Coloration");
+                        System.out.println("Mode Coloration\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
                     case Pointage:
-                        System.out.println("Mode Pointage");
+                        System.out.println("Mode Pointage\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -304,7 +304,7 @@ public class AutomateMI {
             case Coloration:
                 switch (state) {
                     case Idle:
-                        System.out.println("Mode Idle");
+                        System.out.println("Mode Idle\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -325,7 +325,7 @@ public class AutomateMI {
                         changeStateOK = false;
                         break;
                     case Positionnement:
-                        System.out.println("Mode Positionnement");
+                        System.out.println("Mode Positionnement\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -379,7 +379,7 @@ public class AutomateMI {
                         changeStateOK = false;
                         break;
                     case Designation:
-                        System.out.println("Mode Designation");
+                        System.out.println("Mode Designation\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -389,7 +389,7 @@ public class AutomateMI {
             case Designation:
                 switch (state) {
                     case Idle:
-                        System.out.println("Mode Idle");
+                        System.out.println("Mode Idle\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
@@ -410,12 +410,12 @@ public class AutomateMI {
                         changeStateOK = false;
                         break;
                     case Positionnement:
-                        System.out.println("Mode Positionnement");
+                        System.out.println("Mode Positionnement\n");
                         currentState = state;
                         changeStateOK = true;
                         break;
                     case Coloration:
-                        System.out.println("Mode Coloration");
+                        System.out.println("Mode Coloration\n");
                         currentState = state;
                         changeStateOK = true;
                         break;

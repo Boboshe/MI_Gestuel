@@ -145,10 +145,11 @@ public class AgentGestuel extends JFrame {
 
                 String couleurFondArg = splitArray[0];
                 String couleurContourArg = splitArray[1];
-                System.out.println("CouleurFond: " + couleurFondArg + ", CouleurContour: " + couleurContourArg);
+//                System.out.println("CouleurFond: " + couleurFondArg + ", CouleurContour: " + couleurContourArg);
 
-                couleurFond = recognizeColor(couleurFondArg);
-                couleurContour = recognizeColor(couleurContourArg);
+                couleurFond = recognizeStringColor(couleurFondArg);
+                couleurContour = recognizeStringColor(couleurContourArg);
+//                System.out.println("CouleurFond: " + recognizeColor(couleurFond) + ", CouleurContour: " + recognizeColor(couleurContour));
 
                 colorStated = true;
                 System.out.println("Color find, colorStated=" + colorStated);
@@ -158,7 +159,7 @@ public class AgentGestuel extends JFrame {
                 objStated = true;
             }
 
-            private Color recognizeColor(String couleur) {
+            private Color recognizeStringColor(String couleur) {
                 //Couleur par défaut
                 Color color = Color.BLACK;
 
@@ -188,6 +189,33 @@ public class AgentGestuel extends JFrame {
         );
     }
 
+    private String recognizeColor(Color c) {
+        return convertToPaletteColor(c);
+    }
+
+    private String convertToPaletteColor(Color c) {
+        String colorName = "No color found";
+        if (Color.BLACK.equals(c)) {
+            colorName = "BLACK";
+        }
+        if (Color.BLUE.equals(c)) {
+            colorName = "BLUE";
+        }
+        if (Color.RED.equals(c)) {
+            colorName = "RED";
+        }
+        if (Color.GREEN.equals(c)) {
+            colorName = "GREEN";
+        }
+        if (Color.YELLOW.equals(c)) {
+            colorName = "YELLOW";
+        }
+        if (Color.ORANGE.equals(c)) {
+            colorName = "ORANGE";
+        }
+        return colorName;
+    }
+
     private void palette(Ivy bus) throws IvyException {
         bus.bindMsg("^Palette:(.*) x=(.*) y=(.*)", new IvyMessageListener() {
 
@@ -210,9 +238,11 @@ public class AgentGestuel extends JFrame {
                     stockPointsInStroke(xCur, yCur);
                     dragActived = true;
                 }
+
                 if (propriete.equals("MouseMoved")) {
                     //Ne récupère la position que si un prédicat vocal a été émis
                     if (positionStated) {
+//                        System.out.println("MouseMoved");
                         xCur = x;
                         yCur = y;
                     }
@@ -315,60 +345,70 @@ public class AgentGestuel extends JFrame {
 
                 if (myAutomate.changeState(Etat.CreationRectangle)) {
                     //Activation Timer
-                    myTimer.schedule(idleTask, 10 * 1000); //TimerCreerRectangle
+                    restartTimer();
+                    restartTache();
+                    initTache(); //TimerCreerRectangle
                     System.out.println("timerCR");
 
                     //Tant que le timer n'a pas fini...
-                    System.out.println("Attente d'une information vocale...");
+                    System.out.println("Attente d'une information vocale...[POSITION]ou[COULEUR]\n");
                     while (!idleTask.isOver()) {
-                        System.out.print(".");
+//                        System.out.print(".");
+                        System.out.print("positionStated=" + positionStated + ", ");
                         //Si une position ou une couleur à été dites...
                         if (positionStated) { //|| colorStated
                             myPosition.setLocation(xCur, yCur);
                             //on arrête le timer et on fini la tâche
-                            System.out.println("position ou couleur trouvée");
-                            myTimer.cancel();
+                            System.out.println("Une Position ou une Couleur a été trouvée!");
+                            stopTimer();
                             idleTask.setOver(false);
 
                             //On a trouvé une position
                             if (positionStated) {
-                                System.out.println("Position trouvée");
+                                System.out.println("=> Position trouvée");
                                 //On passe dans l'état Positionnement
                                 if (myAutomate.changeState(Etat.Positionnement)) {
-                                    myPosition.setLocation(xCur, yCur);
+                                    myPosition = new Point(xCur, yCur);
 
-                                    myTimer = new Timer();
-                                    idleTask = new InitTask();
-                                    myTimer.schedule(idleTask, 10 * 1000); //TimerPos
+                                    restartTimer();
+                                    restartTache();
+                                    initTache(); //TimerPos
+                                    System.out.println("xCur: " + xCur + ", yCur: " + yCur);
+                                    
                                     System.out.println("\ntimerColor");
-                                    System.out.println("Attente d'une information vocale...");
+                                    System.out.println("Attente d'une information vocale [COULEUR]...\n");
                                     while (!idleTask.isOver()) {
+                                        System.out.print("colorStated=" + colorStated + ", ");
                                         if (colorStated) {
-                                            System.out.println("Couleur trouvée");
-                                            if (myAutomate.changeState(Etat.Positionnement)) {
+                                            System.out.println("=> Couleur trouvée");
+                                            if (myAutomate.changeState(Etat.Coloration)) {
                                                 myColorContour = couleurContour;
                                                 myColorFond = couleurFond;
+//                                                System.out.print("couleurContour: " + recognizeColor(couleurContour));
+//                                                System.out.println(", couleurFond: " + recognizeColor(couleurFond));
+//                                                System.out.print("myColorContour: " + recognizeColor(myColorContour));
+//                                                System.out.println(", myColorFond: " + recognizeColor(myColorFond));
+                                                stopTimer();
+                                                idleTask.setOver(true);
                                             }
+                                            colorStated = false;
                                         }
                                     }//Fin_while
-
                                 }
+                                positionStated = false;
                             }
 
-//                            if (colorStated) {
-//                                if (myAutomate.changeState(Etat.Coloration)) {
-//                                    stopDetectionCouleur();
-//                                    restartDetectionPosition();
-//                                }
-//                            }
-//                        idleTask.setOver(true);    
-                        } //Fin_if_po-color
-                    }//Fin_while => Timer terminé
-                    System.out.println("Fin timer Timer retour à Idle");
-                    myAutomate.changeState(AutomateMI.Etat.Idle);
-
+                            //Faire la même chose pour la Couleur avant le Positionnement
+                        } //Fin_if_pos/color
+                    }//Fin_while
+                    idleTask.setOver(false);
                     System.out.println("**************** Rectangle créée");
+                    System.out.print("myColorContour: " + recognizeColor(myColorContour));
+                    System.out.println(", myColorFond: " + recognizeColor(myColorFond));
                     creerRectangle(myPosition.x, myPosition.y, 100, 100, myColorFond, myColorContour);
+
+                    System.out.println("Retour à Idle");
+                    myAutomate.changeState(AutomateMI.Etat.Idle);
                 }
                 break;
             case 1:
@@ -383,6 +423,28 @@ public class AgentGestuel extends JFrame {
             default:
                 System.out.println("Commande non reconnue\n");
         }
+    }
+
+    private void restartTimer() {
+        if (myTimer != null) {
+            System.out.println("******** Restart myTimer");
+            myTimer = new Timer();
+        }
+    }
+
+    private void stopTimer() {
+        myTimer.cancel();
+    }
+
+    private void restartTache() {
+        if (idleTask != null) {
+            System.out.println("******** Restart idleTask");
+            idleTask = new InitTask();
+        }
+    }
+
+    private void initTache() {
+        myTimer.schedule(idleTask, 10 * 1000);
     }
 
     /**
@@ -408,8 +470,10 @@ public class AgentGestuel extends JFrame {
      */
     public void creerRectangle(int x, int y, int longueur, int hauteur, Color colorFond, Color colorContour) {
         try {
-            bus.sendMsg("Palette:CreerRectangle x=" + x + " y=" + y + " longueur=" + longueur + " hauteur=" + hauteur + " couleurFond=" + colorFond + " couleurContour=" + colorContour);
-
+            System.out.println("Palette:CreerRectangle x=" + x + " y=" + y + " longueur=" + longueur + " hauteur=" + hauteur + " couleurFond=" + convertToPaletteColor(colorFond) + " couleurContour=" + convertToPaletteColor(colorContour));
+            bus.sendMsg("Palette:CreerRectangle x=" + x + " y=" + y + " longueur=" + longueur + " hauteur=" + hauteur + " couleurFond=" + convertToPaletteColor(colorFond) + " couleurContour=" + convertToPaletteColor(colorContour));
+            //"Palette:CreerRectangle x=" + myPosition.x + " y=" + myPosition.y + " longueur=" + 100 + " hauteur=" + 100 + " couleurFond=" + myColorFond + " couleurContour=" + myColorContour"
+            //Palette:CreerRectangle x=100 y=100 longueur=100 hauteur=100 couleurFond=Color.BLACK couleurContour=Color.BLACK
         } catch (IvyException ex) {
             Logger.getLogger(AgentGestuel.class
                     .getName()).log(Level.SEVERE, null, ex);
