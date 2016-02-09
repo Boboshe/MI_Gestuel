@@ -48,18 +48,16 @@ public class AgentGestuel extends JFrame {
     private Template template;
     private ArrayList<Template> listeTemplate;
     private AutomateMI myAutomate;
-    private Timer timer;
 
     private boolean positionVoiceStated = false;
     private boolean positionCursorStated = false;
     private boolean colorStated = false;
     private boolean objStated = false;
 
-    private long timerColorStart, timerPositionStart;
-    private long timerColorStop, timerPositionStop;
-
     private Timer myTimer;
     private CreateRectangleTask rectangleTask;
+    private final int TYPE_RECTANGLE = 0;
+    private final int TYPE_ELLIPSE = 1;
 
     private float seuil;
 
@@ -71,8 +69,6 @@ public class AgentGestuel extends JFrame {
         bus = new Ivy("AgentGestuel", "Agent ready", null);
         stroke = new Stroke();
         myAutomate = new AutomateMI();
-        myTimer = new Timer();
-        rectangleTask = new CreateRectangleTask(myAutomate, this);
 
         palette(bus);
 //        voix(bus); // dans => compareToExistingTemplate
@@ -146,7 +142,7 @@ public class AgentGestuel extends JFrame {
 
             private void positionFind() {
                 positionVoiceStated = true;
-                System.out.println("Position find, positionStated=" + positionVoiceStated);
+//                System.out.println("Position find, positionStated=" + positionVoiceStated);
             }
 
             private void colorsFind(String[] args) {
@@ -155,7 +151,6 @@ public class AgentGestuel extends JFrame {
 
                 String couleurFondArg = splitArray[0];
                 String couleurContourArg = splitArray[1];
-//                System.out.println("CouleurFond: " + couleurFondArg + ", CouleurContour: " + couleurContourArg);
 
                 couleurFond = recognizeStringColor(couleurFondArg);
                 couleurContour = recognizeStringColor(couleurContourArg);
@@ -169,9 +164,8 @@ public class AgentGestuel extends JFrame {
                         colorStated = false;
                     }
                 }
-//                System.out.println("CouleurFond: " + recognizeColor(couleurFond) + ", CouleurContour: " + recognizeColor(couleurContour));
 
-                System.out.println("Color find, colorStated=" + colorStated);
+//                System.out.println("Color find, colorStated=" + colorStated);
             }
 
             private void objectFind() {
@@ -248,7 +242,6 @@ public class AgentGestuel extends JFrame {
 //                System.out.println("[IN] Propriété=" + propriete);
 
                 if (propriete.equals("MouseClicked")) {
-//                    System.out.println("MouseClicked -  x:" + x + ", y:" + x);
 
                     //Si on est dans la tâche de récupération de la position...
                     if (rectangleTask != null) {
@@ -270,7 +263,6 @@ public class AgentGestuel extends JFrame {
                 }//Fin_MouseClicked
 
                 if (propriete.equals("MousePressed")) {
-//                    System.out.println("Pressed -  x:" + x + ", y:" + y);
                     xDeb = x;
                     yDeb = y;
                 }
@@ -282,11 +274,10 @@ public class AgentGestuel extends JFrame {
                 }
 
                 if (propriete.equals("MouseReleased")) {
-//                    System.out.println("Released -  x:" + x + ", y:" + y);
                     xFin = x;
                     yFin = y;
                     if (dragActived) {
-                        System.out.println("Ajout du template");
+//                        System.out.println("Ajout du template");
                         stroke.normalize();
                         try {
                             compareToExistingTemplate(stroke);
@@ -388,27 +379,29 @@ public class AgentGestuel extends JFrame {
         /**
          * * ACTIONS **
          */
-//        Color myColorFond = DEFAULT_COLOR;
-//        Color myColorContour = DEFAULT_COLOR;
-//        Point myPosition = DEFAULT_POSITION;
+        myTimer = new Timer();
         switch (index) {
-            case 0:
-                System.out.println("GesteCreation du Rectancle\n");
+            case TYPE_RECTANGLE:
+                System.out.println("Geste CreationRectancle\n");
 
                 if (myAutomate.changeState(Etat.CreationRectangle)) {
                     //Activation Timer
-                    initTask();
-                    initTimer(); //TimerCreerRectangle
+                    initTimer(TYPE_RECTANGLE); //TimerCreerRectangle
                 }
                 break;
-            case 1:
-                System.out.println("Creer Ellipse\n");
+            case TYPE_ELLIPSE:
+                System.out.println("Geste CreationEllipse\n");
+                
+//                if (myAutomate.changeState(Etat.CreationEllipse)) {
+//                    //Activation Timer
+//                    initTimer(TYPE_ELLIPSE); //TimerCreationEllipse
+//                }
                 break;
             case 2:
-                System.out.println("Déplacer\n");
+                System.out.println("Geste Déplacer\n");
                 break;
             case 3:
-                System.out.println("Supprimer\n");
+                System.out.println("Geste Supprimer\n");
                 break;
             default:
                 System.out.println("Commande non reconnue\n");
@@ -416,17 +409,32 @@ public class AgentGestuel extends JFrame {
     }
 
     /* TIMER & TASK */
-    private void initTask() {
-        if (rectangleTask != null) {
-            System.out.println("******** Restart idleTask");
-            rectangleTask = new CreateRectangleTask(myAutomate, this); //<===================================== ICI
-        }
+    private void initRectangleTask() {
+        System.out.println("******** Init rectangleTask");
+        rectangleTask = new CreateRectangleTask(myAutomate, this); //<===================================== ICI
     }
 
-    private void initTimer() {
+    
+//    private void initEllipseTask() {
+//        if (ellipseTask != null) {
+//            System.out.println("******** Restart ellipseTask");
+//            ellipseTask = new CreateRectangleTask(myAutomate, this); //<===================================== ICI
+//        }
+//    }
+    
+    
+    private void initTimer(int type) {
         reinitTimer();
         System.out.println("Init myTimer");
-        myTimer.schedule(rectangleTask, 0);// 10 * 1000
+        if (type == TYPE_RECTANGLE) {
+            initRectangleTask();
+            myTimer.schedule(rectangleTask, 0); //0 = On execute le run imédiatement
+        }
+        if (type == TYPE_ELLIPSE) {
+//            initEllipseTask();
+//            myTimer.schedule(ellipseTask, 0); //0 = On execute le run imédiatement
+        }
+
     }
 
     private void reinitTimer() {
@@ -440,6 +448,15 @@ public class AgentGestuel extends JFrame {
         myTimer.cancel();
     }
 
+    /* NOT USED */
+    private void reinitRectangleTask() {
+        if (rectangleTask != null) {
+            System.out.println("******** Restart rectangleTask");
+            rectangleTask = new CreateRectangleTask(myAutomate, this); //<===================================== ICI
+        }
+    }
+
+    
     /* CREATION */
     /**
      * Dessine une rectangle avec les couleurs de fond et de contour
@@ -573,108 +590,4 @@ public class AgentGestuel extends JFrame {
     public static void main(String[] args) throws IvyException {
         new AgentGestuel();
     }
-
-    /*
-     System.out.println("Creation du Rectancle\n");
-
-     if (myAutomate.changeState(Etat.CreationRectangle)) {
-     //Activation Timer
-     initTask();
-     initTimer(); //TimerCreerRectangle
-     System.out.println("timerCR");
-
-     //Tant que le timer n'a pas fini...
-     System.out.println("Attente d'une information vocale...[POSITION]ou[COULEUR]\n");
-     while (!idleTask.isOver()) {
-                        
-     System.out.print("positionStated=" + positionVoiceStated + ", ");
-     //Si une position ou une couleur à été dites...
-     if (positionVoiceStated) { //|| colorStated
-     //on arrête le timer et on fini la tâche
-     System.out.println("Une Position ou une Couleur a été trouvée!");
-     stopTimer();
-     idleTask.setOver(false);
-
-     //On a trouvé une position
-     if (positionVoiceStated) {
-     System.out.println("=> Position trouvée");
-     //On passe dans l'état Positionnement
-     if (myAutomate.changeState(Etat.Positionnement)) {
-     myPosition = new Point(xClicked, yClicked);
-
-     initTask();
-     initTimer(); //TimerPos
-     System.out.println("xCur: " + xClicked + ", yCur: " + yClicked);
-
-     System.out.println("\ntimerColor");
-     System.out.println("Attente d'une information vocale [COULEUR]...\n");
-     while (!idleTask.isOver()) {
-     System.out.print("colorStated=" + colorStated + ", ");
-     if (colorStated) {
-     System.out.println("=> Couleur trouvée");
-     if (myAutomate.changeState(Etat.Coloration)) {
-     myColorContour = couleurContour;
-     myColorFond = couleurFond;
-     stopTimer();
-     idleTask.setOver(true);
-     }
-     colorStated = false;
-     }
-     }//Fin_while
-     }
-     positionVoiceStated = false;
-     }
-
-     //Faire la même chose pour la Couleur avant le Positionnement
-     } //Fin_if_pos/color
-     }//Fin_while
-     idleTask.setOver(false);
-     System.out.println("**************** Rectangle créée");
-     System.out.print("myColorFond: " + recognizeColor(myColorFond));
-     System.out.println(", myColorContour: " + recognizeColor(myColorContour));
-     creerRectangle(myPosition.x, myPosition.y, 100, 100, myColorFond, myColorContour);
-
-     System.out.println("Retour à Idle");
-     myAutomate.changeState(AutomateMI.Etat.Idle);
-     }
-     */
-    /*
-    //                    System.out.println("timerCR");
-//                    System.out.println("Attente d'une information vocale...[POSITION]ou[COULEUR]\n");
-//
-//                    //On a trouvé une position
-//                    if (positionVoiceStated) {
-//                        System.out.println("=> Position trouvée");
-//                        if (myAutomate.changeState(Etat.Positionnement)) {
-////                            myPosition = new Point(xClicked, yClicked);
-//                            System.out.println("xCur: " + xClicked + ", yCur: " + yClicked);
-//                            rectangleTask.setMyPosition(new Point(xClicked, yClicked));
-//                        }
-//                    }
-//
-//                    if (colorStated) {
-//                        System.out.println("=> Couleur trouvée");
-//                        if (myAutomate.changeState(Etat.Coloration)) {
-////                            myColorContour = couleurContour;
-////                            myColorFond = couleurFond;
-//                            rectangleTask.setMyColorContour(couleurContour);
-//                            rectangleTask.setMyColorFond(couleurFond);
-//                        }
-//                    }
-//
-//                    if (positionVoiceStated && colorStated) {
-//                        stopTimer();
-//                    }
-//
-//                    positionVoiceStated = false;
-//                    colorStated = false;
-
-//                    System.out.println("**************** [CREER] Rectangle créée");
-//                    System.out.print("myColorFond: " + recognizeColor(myColorFond));
-//                    System.out.println(", myColorContour: " + recognizeColor(myColorContour));
-//                    creerRectangle(myPosition.x, myPosition.y, 100, 100, myColorFond, myColorContour);
-//
-//                    System.out.println("**************** [NORMAL] Retour Idle");
-//                    myAutomate.changeState(AutomateMI.Etat.Idle);
-    */
 }

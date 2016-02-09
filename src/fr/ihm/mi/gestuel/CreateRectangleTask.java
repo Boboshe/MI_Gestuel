@@ -33,7 +33,6 @@ public class CreateRectangleTask extends TimerTask {
     private Point myPosition = DEFAULT_POSITION;
 
     private boolean over;
-    private boolean canStop;
 
     public boolean isOver() {
         return over;
@@ -48,30 +47,29 @@ public class CreateRectangleTask extends TimerTask {
         this.myAutomate = myAutomate;
         this.agentGestuel = agentGestuel;
         this.timer = timer;
-        //Variables obligatoirement initialisée à false lors de la création
+        //Variable(s) obligatoirement initialisée(s) à false lors de la création
         this.over = false;
-        this.canStop = false;
     }
 
     @Override
     public void run() {
-        System.out.println("****************  [Timer] DEBUT");
+        System.out.println("****************  [Timer Rectangle] DEBUT");
         System.out.println("Attente de position et de couleur...");
         try {
             Thread.sleep(timer);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("****************  [Timer] FIN ");
+        System.out.println("****************  [Timer Rectangle] FIN ");
 
         System.out.print("myColorFond: " + agentGestuel.recognizeColor(myColorFond));
         System.out.println(", myColorContour: " + agentGestuel.recognizeColor(myColorContour));
         agentGestuel.creerRectangle(this.myPosition.x, this.myPosition.y, 100, 100, this.myColorFond, this.myColorContour);
-        System.out.println("**************** [CREER] Rectangle créée");
+        System.out.println("**************** [Timer Rectangle] ### Rectangle créée ###");
         
-        System.out.println("****************  [Timer] Retour Idle");
         myAutomate.changeState(AutomateMI.Etat.Idle);
-        over = false;
+        System.out.println("****************  [Timer Rectangle] Retour à Idle");
+        over = true;
     }
 
     /**
