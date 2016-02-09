@@ -13,6 +13,10 @@ public class AutomateMI {
 
     private Etat currentState;
 
+    public Etat getCurrentState() {
+        return currentState;
+    }
+
     public enum Etat {
 
         Idle,

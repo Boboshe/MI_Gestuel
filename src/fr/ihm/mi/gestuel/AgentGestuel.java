@@ -40,6 +40,7 @@ public class AgentGestuel extends JFrame {
     private int xDeb = 0, xFin = 0;
     private int yDeb = 0, yFin = 0;
     private int xCur = 0, yCur = 0;
+    private int xClicked = 0, yClicked = 0;
     private boolean dragActived = false;
     private String nomObj = "no name";
     private ArrayList<String> listNomObj = new ArrayList<>();
@@ -49,7 +50,8 @@ public class AgentGestuel extends JFrame {
     private AutomateMI myAutomate;
     private Timer timer;
 
-    private boolean positionStated = false;
+    private boolean positionVoiceStated = false;
+    private boolean positionCursorStated = false;
     private boolean colorStated = false;
     private boolean objStated = false;
 
@@ -85,6 +87,7 @@ public class AgentGestuel extends JFrame {
             // .*  => ça c'est trash
             @Override
             public void receive(IvyClient ic, String[] args) {
+
                 System.out.println("[IN] Text=" + args[0]);
                 String c = args[1].replace(",", ".");
                 float confidence = Float.parseFloat(c);
@@ -104,6 +107,7 @@ public class AgentGestuel extends JFrame {
                             || args[0].contains("a cet endroit")) {
                         System.out.println("[POSITION RECONNU] Text=" + args[0]);
                         positionFind();
+
                     }
 
                     //Couleur
@@ -118,6 +122,7 @@ public class AgentGestuel extends JFrame {
                         colorsFind(args);
                     }
 
+                    //<============================================ ICI LE PLUS DUR
                     if (args[0].contains("de cette couleur")) {
                         //Il faut capter la couleur de l'objet désigné
                     }
@@ -132,11 +137,12 @@ public class AgentGestuel extends JFrame {
 
                     System.out.println("");
                 }
+
             }
 
             private void positionFind() {
-                positionStated = true;
-                System.out.println("Position find, positionStated=" + positionStated);
+                positionVoiceStated = true;
+                System.out.println("Position find, positionStated=" + positionVoiceStated);
             }
 
             private void colorsFind(String[] args) {
@@ -226,9 +232,18 @@ public class AgentGestuel extends JFrame {
                 int x = new Integer(args[1]);
                 int y = new Integer(args[2]);
 //                System.out.println("[IN] Propriété=" + propriete);
+                
+                if (positionVoiceStated) {
+                    if (propriete.equals("MouseClicked")) {
+                        System.out.println("MouseClicked -  x:" + x + ", y:" + y);
+                        xClicked = x;
+                        yClicked = y;
+                        positionCursorStated = true;
+                    }
+                }
 
                 if (propriete.equals("MousePressed")) {
-                    System.out.println("Pressed -  x:" + x + ", y:" + y);
+//                    System.out.println("Pressed -  x:" + x + ", y:" + y);
                     xDeb = x;
                     yDeb = y;
                 }
@@ -238,23 +253,9 @@ public class AgentGestuel extends JFrame {
                     stockPointsInStroke(xCur, yCur);
                     dragActived = true;
                 }
-                if (propriete.equals("MouseClicked")) {
-//                    if (positionStated) {
-                        xCur = x;
-                        yCur = y;
-//                    }
-                }
 
-                if (propriete.equals("MouseMoved")) {
-                    //Ne récupère la position que si un prédicat vocal a été émis
-//                    if (positionStated) {
-//                        System.out.print("MouseMoved");
-                    xCur = x;
-                    yCur = y;
-//                    }
-                }
                 if (propriete.equals("MouseReleased")) {
-                    System.out.println("Released -  x:" + x + ", y:" + y);
+//                    System.out.println("Released -  x:" + x + ", y:" + y);
                     xFin = x;
                     yFin = y;
                     if (dragActived) {
@@ -361,26 +362,25 @@ public class AgentGestuel extends JFrame {
                     System.out.println("Attente d'une information vocale...[POSITION]ou[COULEUR]\n");
                     while (!idleTask.isOver()) {
 //                        System.out.print(".");
-                        System.out.print("positionStated=" + positionStated + ", ");
+                        System.out.print("positionStated=" + positionVoiceStated + ", ");
                         //Si une position ou une couleur à été dites...
-                        if (positionStated) { //|| colorStated
-                            myPosition.setLocation(xCur, yCur);
+                        if (positionVoiceStated) { //|| colorStated
                             //on arrête le timer et on fini la tâche
                             System.out.println("Une Position ou une Couleur a été trouvée!");
                             stopTimer();
                             idleTask.setOver(false);
 
                             //On a trouvé une position
-                            if (positionStated) {
+                            if (positionVoiceStated) {
                                 System.out.println("=> Position trouvée");
                                 //On passe dans l'état Positionnement
                                 if (myAutomate.changeState(Etat.Positionnement)) {
-                                    myPosition = new Point(xCur, yCur);
+                                    myPosition = new Point(xClicked, yClicked);
 
                                     restartTimer();
                                     restartTache();
                                     initTache(); //TimerPos
-                                    System.out.println("xCur: " + xCur + ", yCur: " + yCur);
+                                    System.out.println("xCur: " + xClicked + ", yCur: " + yClicked);
 
                                     System.out.println("\ntimerColor");
                                     System.out.println("Attente d'une information vocale [COULEUR]...\n");
@@ -402,7 +402,7 @@ public class AgentGestuel extends JFrame {
                                         }
                                     }//Fin_while
                                 }
-                                positionStated = false;
+                                positionVoiceStated = false;
                             }
 
                             //Faire la même chose pour la Couleur avant le Positionnement
