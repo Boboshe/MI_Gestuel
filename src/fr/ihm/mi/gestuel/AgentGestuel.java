@@ -233,14 +233,14 @@ public class AgentGestuel extends JFrame {
                 int y = new Integer(args[2]);
 //                System.out.println("[IN] Propriété=" + propriete);
                 
-                if (positionVoiceStated) {
+//                if (positionVoiceStated) {
                     if (propriete.equals("MouseClicked")) {
                         System.out.println("MouseClicked -  x:" + x + ", y:" + y);
                         xClicked = x;
                         yClicked = y;
-                        positionCursorStated = true;
+//                        positionCursorStated = true;
                     }
-                }
+//                }
 
                 if (propriete.equals("MousePressed")) {
 //                    System.out.println("Pressed -  x:" + x + ", y:" + y);
