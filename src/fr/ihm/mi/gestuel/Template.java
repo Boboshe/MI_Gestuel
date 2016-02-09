@@ -28,7 +28,7 @@ public class Template {
             Point2D.Double p = str.getPoint(i);
             dist += p.distance(pTemplate);
         }
-        System.out.println("Dist = " + dist);
+//        System.out.println("Dist = " + dist);
         return dist;
     }
 
