@@ -21,9 +21,10 @@ public class MoveTask extends TimerTask {
     // (#G) <==================================================================
     public static final Color DEFAULT_COLOR = Color.BLACK;
     public static final Point DEFAULT_POSITION = new Point(50, 50);
-    private static final long DEFAULT_TIME = 10*1000; //temps initialisé à 10sec
+    private static final long DEFAULT_TIME = 10 * 1000; //temps initialisé à 10sec
+    private static final int ERROR_NAME = 0;
+    private static final int ERROR_POSITION = 1;
 
-    
     private AutomateMI myAutomate;
     private AgentGestuel agentGestuel;
     private long timer;
@@ -33,7 +34,11 @@ public class MoveTask extends TimerTask {
     private Color myColorFond = DEFAULT_COLOR;
     private Color myColorContour = DEFAULT_COLOR;
     private Point myPosition = DEFAULT_POSITION;
+    private String name = null;
+    private String msgErreur = null;
 
+    private boolean positionVoiceStated;
+    private boolean nameStated;
     private boolean over;
 
     public boolean isOver() {
@@ -41,7 +46,7 @@ public class MoveTask extends TimerTask {
     }
 
     public MoveTask(AutomateMI myAutomate, AgentGestuel agentGestuel) {
-        this(myAutomate, agentGestuel, DEFAULT_TIME); 
+        this(myAutomate, agentGestuel, DEFAULT_TIME);
     }
 
     public MoveTask(AutomateMI myAutomate, AgentGestuel agentGestuel, long timer) {
@@ -51,27 +56,56 @@ public class MoveTask extends TimerTask {
         this.timer = timer;
         //Variable(s) obligatoirement initialisée(s) à false lors de la création
         this.over = false;
+        this.positionVoiceStated = false;
+        this.nameStated = false;
     }
 
     @Override
     public void run() {
-        System.out.println("****************  [Timer Rectangle] DEBUT");
-        System.out.println("Attente de position et de couleur...");
+        System.out.println("****************  [Timer Deplacer] DEBUT");
+        System.out.println("Attente d'une désignation d'un objet...");
         try {
             Thread.sleep(timer);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("****************  [Timer Rectangle] FIN ");
+        System.out.println("****************  [Timer Deplacer] FIN ");
 
-        System.out.print("myColorFond: " + agentGestuel.recognizeColor(myColorFond));
-        System.out.println(", myColorContour: " + agentGestuel.recognizeColor(myColorContour));
-        agentGestuel.creerRectangle(this.myPosition.x, this.myPosition.y, 100, 100, this.myColorFond, this.myColorContour);
-        System.out.println("**************** [Timer Rectangle] ### Rectangle créé ###");
-        
-        myAutomate.changeState(AutomateMI.Etat.Idle);
-        System.out.println("****************  [Timer Rectangle] Retour à Idle");
+//        System.out.print("myColorFond: " + agentGestuel.recognizeColor(myColorFond));
+//        System.out.println(", myColorContour: " + agentGestuel.recognizeColor(myColorContour));
+
+        /* Gérer l'échec du déplacement */
+        if (nameStated && positionVoiceStated) {
+            //Faire le déplacement
+            agentGestuel.deplacer(name, myPosition.x, myPosition.y);
+            System.out.println("**************** [Timer Deplacer] ### Déplacement effectué ###");
+
+            myAutomate.changeState(AutomateMI.Etat.Idle);
+            System.out.println("****************  [Timer Deplacer] Retour à Idle");
+        } else { //Sinon msg erreur!  
+            //On constitue le message d'erreur en fonction des différents 
+            //paramètres qui n'ont pas été envoyés pendant la durée du timer
+            if (nameStated) {
+                constituerMsgErreur(ERROR_NAME);
+            }
+            if (positionVoiceStated) {
+                constituerMsgErreur(ERROR_POSITION);
+            }
+            System.out.println("**************** [Timer Deplacer] ### ECHEC du déplacement ###");
+            System.out.println("" + msgErreur);
+        }
+
         over = true;
+    }
+
+    /**
+     * Récupère le nom de l'objet à déplacer.
+     *
+     * @param name
+     */
+    public void setName(String name) {
+        this.name = name;
+        nameStated = true;
     }
 
     /**
@@ -82,6 +116,7 @@ public class MoveTask extends TimerTask {
      */
     public void setMyPosition(Point myPosition) {
         this.myPosition = myPosition;
+        positionVoiceStated = true;
     }
 
     /**
@@ -104,4 +139,18 @@ public class MoveTask extends TimerTask {
     public void setMyColorContour(Color myColorContour) {
         this.myColorContour = myColorContour;
     }
+
+    private void constituerMsgErreur(int codeErrVerif) {
+        msgErreur = "*[ERREUR] ";
+        switch (codeErrVerif) {
+            //Pour l'ajout :
+            case ERROR_NAME:
+                msgErreur += "Aucun nom détecté\n";
+                break;
+            case ERROR_POSITION:
+                msgErreur += "Aucune position détectée";
+                break;
+        }
+    }
+
 }

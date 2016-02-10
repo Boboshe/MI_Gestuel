@@ -50,9 +50,8 @@ public class AgentGestuel extends JFrame {
     private AutomateMI myAutomate;
 
     private boolean positionVoiceStated = false;
-    private boolean positionCursorStated = false;
-    private boolean colorStated = false;
-    private boolean objStated = false;
+    private boolean colorVoiceStated = false;
+    private boolean objetVoiceStated = false;
 
     private Timer myTimer;
 
@@ -161,14 +160,14 @@ public class AgentGestuel extends JFrame {
 
                 couleurFond = recognizeStringColor(couleurFondArg);
                 couleurContour = recognizeStringColor(couleurContourArg);
-                colorStated = true;
+                colorVoiceStated = true;
 
                 if (rectangleTask != null) {
                     if (!rectangleTask.isOver()) {
                         rectangleTask.setMyColorFond(couleurFond);
                         rectangleTask.setMyColorContour(couleurContour);
                         System.out.println("**************** [Couleur Rectangle]  CouleurFond: " + recognizeColor(couleurFond) + ", CouleurContour: " + recognizeColor(couleurContour));
-                        colorStated = false;
+                        colorVoiceStated = false;
                     }
                 }
                 if (ellipseTask != null) {
@@ -176,15 +175,30 @@ public class AgentGestuel extends JFrame {
                         ellipseTask.setMyColorFond(couleurFond);
                         ellipseTask.setMyColorContour(couleurContour);
                         System.out.println("**************** [Couleur Ellipse]  CouleurFond: " + recognizeColor(couleurFond) + ", CouleurContour: " + recognizeColor(couleurContour));
-                        colorStated = false;
+                        colorVoiceStated = false;
                     }
                 }
 
 //                System.out.println("Color find, colorStated=" + colorStated);
             }
 
+//                        deleteTask.setMyPosition(new Point(xClicked, yClicked));
+            
             private void objectFind() {
-                objStated = true;
+                if (moveTask != null) {
+                    if (!moveTask.isOver()) {
+                        System.out.print("**************** [Pointage Move] Désignation enregistrée");
+                        testerPoint(xClicked, yClicked);
+                        objetVoiceStated = true;
+                    }
+                }
+                if (deleteTask != null) {
+                    if (!deleteTask.isOver()) {
+                        System.out.print("**************** [Pointage Delete] Désignation enregistrée");
+                        testerPoint(xClicked, yClicked);
+                        objetVoiceStated = true;
+                    }
+                }
             }
 
             private Color recognizeStringColor(String couleur) {
@@ -213,8 +227,7 @@ public class AgentGestuel extends JFrame {
                 return color;
             }
 
-        }
-        );
+        });
     }
 
     public String recognizeColor(Color c) {
@@ -246,6 +259,8 @@ public class AgentGestuel extends JFrame {
 
     /* Palette => EvtSouris */
     private void palette(Ivy bus) throws IvyException {
+
+        //Bus Evnmt souris
         bus.bindMsg("^Palette:(.*) x=(.*) y=(.*)", new IvyMessageListener() {
 
             @Override
@@ -267,11 +282,11 @@ public class AgentGestuel extends JFrame {
                             //On vérifie que la position à été validée par la voix
                             //si ce n'est pas le cas, on précise à l'utilisateur qu'il doit le faire
                             if (!positionVoiceStated) {
-                                System.out.print("**************** [Pointeur]");
+                                System.out.print("**************** [Position - Rectangle]");
                                 System.out.print("Vous devez indiquer la position à la voix, ");
                                 System.out.println("avant de cliquer, pour valider la position.");
                             } else { //Sinon c'est bon on stocke la position
-                                System.out.print("**************** [Pointeur] Position stockée");
+                                System.out.print("**************** [Position - Rectangle] Position stockée");
                                 rectangleTask.setMyPosition(new Point(x, y));
                                 positionVoiceStated = false;
                             }//Fin_if_positionVoiceStated?
@@ -285,16 +300,54 @@ public class AgentGestuel extends JFrame {
                             //On vérifie que la position à été validée par la voix
                             //si ce n'est pas le cas, on précise à l'utilisateur qu'il doit le faire
                             if (!positionVoiceStated) {
-                                System.out.print("**************** [Pointeur]");
-                                System.out.print("Vous devez indiquer la position à la voix, ");
+                                System.out.print("**************** [Position - Ellipse]");
+                                System.out.print("Vous devez indiquer la position à la voix ");
                                 System.out.println("avant de cliquer, pour valider la position.");
                             } else { //Sinon c'est bon on stocke la position
-                                System.out.print("**************** [Pointeur] Position stockée");
+                                System.out.print("**************** [Position - Ellipse] Position stockée");
                                 ellipseTask.setMyPosition(new Point(x, y));
                                 positionVoiceStated = false;
                             }//Fin_if_positionVoiceStated?
                         }//fin_ellipseTask.isOver?
-                    }//fin_ellipseTask-null?
+                    }//fin_ellipseTask-null?                    
+                    // (#G) END <===============================================================
+
+                    // (#G) <==================================================================
+                    /* DEPLACER */
+                    if (moveTask != null) {
+                        if (!moveTask.isOver()) {
+                            
+                            if (positionVoiceStated) {
+                                System.out.print("**************** [Position - Move] Position stockée");
+                                moveTask.setMyPosition(new Point(x, y));
+                                positionVoiceStated = false;
+                            }//Fin_if_positionVoiceStated?
+                            
+                            xClicked = x;
+                            yClicked = y;
+                            System.out.print("**************** [Objet - Move] Désignation en attente d'enregistrement...");
+                            System.out.println(" /!\\ N'oubliez pas d'indiquer l'objet à la voix pour valider l'objet désigné");
+                            
+                        }//fin_moveTask.isOver?
+                    }//fin_moveTask-null?
+                    
+                    /* SUPPRIMER */
+                    if (deleteTask != null) {
+                        if (!deleteTask.isOver()) {
+                            
+                            if (positionVoiceStated) {
+                                System.out.print("**************** [Position - Delete] Position stockée");
+                                deleteTask.setMyPosition(new Point(x, y));
+                                positionVoiceStated = false;
+                            }//Fin_if_positionVoiceStated?
+                            
+                            xClicked = x;
+                            yClicked = y;
+                            System.out.print("**************** [Objet - Delete] Désignation en attente d'enregistrement...");
+                            System.out.println(" /!\\ N'oubliez pas d'indiquer l'objet à la voix pour valider l'objet désigné");
+                            
+                        }//fin_moveTask.isOver?
+                    }//fin_moveTask-null?
                     // (#G) END <===============================================================
                 }//Fin_MouseClicked
 
@@ -333,9 +386,9 @@ public class AgentGestuel extends JFrame {
 
             }//Fin_received
 
-        }
-        );
+        });
 
+        //Bus ResultatTesterPoint
         bus.bindMsg("^Palette:(.*) x=(.*) y=(.*) nom=(.*)", new IvyMessageListener() {
 
             @Override
@@ -345,25 +398,37 @@ public class AgentGestuel extends JFrame {
                 int y = new Integer(args[2]);
                 String nom = args[3];
                 if (propriete.equals("ResultatTesterPoint")) {
+//                    System.out.print("ResultatTesterPoint");
                     //Si on est dans la tache de détermination de l'objet
-                    
-                    if (moveTask != null) {
-                        if (!moveTask.isOver()) {
-                            xClicked = x;
-                            yClicked = y;
-                            nomObj = nom;
-                        }//fin_moveTask.isOver?
-                    }//fin_moveTask-null?
-                    
-                    
+
+//                    if (moveTask != null) {
+//                        if (!moveTask.isOver()) {
+                    nomObj = nom;
+                    System.out.println("Palette:ResultatTesterPoint x=" + x + " y=" + y + " nom=" + nomObj);
+//                          moveTask.setName(nomObj);
+
+//                        }//fin_moveTask.isOver?
+//                    }//fin_moveTask-null?
                 } //Fin_ResultatTesterPoint
-                
+
             }//Fin_received
-            
-        }
-        );
+
+        });
+
     }
 
+    /*
+     System.out.println("objStated=" + objStated);
+
+     if (!objStated) {
+     System.out.print("**************** [Pointeur]");
+     System.out.print("Vous devez indiquer l'objet à la voix, ");
+     System.out.println("avant de cliquer, pour valider la désignation.");
+     } else {
+     System.out.print("**************** [Pointeur] Objet stockée");
+     objStated = false;
+     }//Fin_if_positionVoiceStated?
+     */
     public void loadTemplate() throws IOException {
         System.out.println("loadTemplate");
         listeTemplate = new ArrayList<Template>();
