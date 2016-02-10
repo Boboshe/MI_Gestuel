@@ -16,7 +16,7 @@ import java.util.TimerTask;
  *
  * @author Boris
  */
-public class CreateRectangleTask extends TimerTask {
+public class MoveTask extends TimerTask {
 
     // (#G) <==================================================================
     public static final Color DEFAULT_COLOR = Color.BLACK;
@@ -40,11 +40,11 @@ public class CreateRectangleTask extends TimerTask {
         return over;
     }
 
-    public CreateRectangleTask(AutomateMI myAutomate, AgentGestuel agentGestuel) {
+    public MoveTask(AutomateMI myAutomate, AgentGestuel agentGestuel) {
         this(myAutomate, agentGestuel, DEFAULT_TIME); 
     }
 
-    public CreateRectangleTask(AutomateMI myAutomate, AgentGestuel agentGestuel, long timer) {
+    public MoveTask(AutomateMI myAutomate, AgentGestuel agentGestuel, long timer) {
         super();
         this.myAutomate = myAutomate;
         this.agentGestuel = agentGestuel;

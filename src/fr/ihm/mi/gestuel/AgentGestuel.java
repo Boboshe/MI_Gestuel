@@ -55,10 +55,16 @@ public class AgentGestuel extends JFrame {
     private boolean objStated = false;
 
     private Timer myTimer;
+
     private CreateRectangleTask rectangleTask;
     private CreateEllipseTask ellipseTask;
+    private MoveTask moveTask;
+    private DeleteTask deleteTask;
+
     private final int TYPE_RECTANGLE = 0;
     private final int TYPE_ELLIPSE = 1;
+    private final int TYPE_SUPPRIMER = 2;
+    private final int TYPE_DEPLACER = 3;
 
     private float seuil;
 
@@ -330,23 +336,31 @@ public class AgentGestuel extends JFrame {
         }
         );
 
-        bus.bindMsg(
-                "^Palette:(.*) x=(.*) y=(.*) nom=(.*)", new IvyMessageListener() {
+        bus.bindMsg("^Palette:(.*) x=(.*) y=(.*) nom=(.*)", new IvyMessageListener() {
 
-                    @Override
-                    public void receive(IvyClient ic, String[] args
-                    ) {
-                        String propriete = args[0];
-                        int x = new Integer(args[1]);
-                        int y = new Integer(args[2]);
-                        String nom = args[3];
-                        if (propriete.equals("ResultatTesterPoint")) {
-                            xFin = x;
-                            yFin = y;
+            @Override
+            public void receive(IvyClient ic, String[] args) {
+                String propriete = args[0];
+                int x = new Integer(args[1]);
+                int y = new Integer(args[2]);
+                String nom = args[3];
+                if (propriete.equals("ResultatTesterPoint")) {
+                    //Si on est dans la tache de détermination de l'objet
+                    
+                    if (moveTask != null) {
+                        if (!moveTask.isOver()) {
+                            xClicked = x;
+                            yClicked = y;
                             nomObj = nom;
-                        }
-                    }
-                }
+                        }//fin_moveTask.isOver?
+                    }//fin_moveTask-null?
+                    
+                    
+                } //Fin_ResultatTesterPoint
+                
+            }//Fin_received
+            
+        }
         );
     }
 
@@ -409,32 +423,42 @@ public class AgentGestuel extends JFrame {
         /**
          * * ACTIONS **
          */
-        myTimer = new Timer();
+//        myTimer = new Timer(); //Test
         switch (index) {
             case TYPE_RECTANGLE:
                 System.out.println("Geste CreationRectancle\n");
-
                 if (myAutomate.changeState(Etat.CreationRectangle)) {
                     //Activation Timer
                     initTimer(TYPE_RECTANGLE); //TimerCreerRectangle
                 }
                 break;
+
             case TYPE_ELLIPSE:
                 System.out.println("Geste CreationEllipse\n");
-
                 if (myAutomate.changeState(Etat.CreationEllipse)) {
                     //Activation Timer
                     initTimer(TYPE_ELLIPSE); //TimerCreationEllipse
                 }
                 break;
-            case 2:
+
+            case TYPE_SUPPRIMER:
                 System.out.println("Geste Déplacer\n");
+                if (myAutomate.changeState(Etat.Suppression)) {
+                    //Activation Timer
+                    initTimer(TYPE_SUPPRIMER); //TimerSuppression
+                }
+
                 break;
-            case 3:
+            case TYPE_DEPLACER:
                 System.out.println("Geste Supprimer\n");
+                if (myAutomate.changeState(Etat.Deplacement)) {
+                    //Activation Timer
+                    initTimer(TYPE_DEPLACER); //TimerDeplacement
+                }
+
                 break;
-            default:
-                System.out.println("Commande non reconnue\n");
+            default: //Normalement => Cas Impossible
+                System.out.println("Geste non reconnu\n");
         }
     }
 
@@ -449,39 +473,54 @@ public class AgentGestuel extends JFrame {
         ellipseTask = new CreateEllipseTask(myAutomate, this); //<===================================== ICI
     }
 
-    private void initTimer(int type) {
-        reinitTimer(); // <=============================== Peut être pas utile...
-        System.out.println("Init myTimer");
-        if (type == TYPE_RECTANGLE) {
-            initRectangleTask();
-            myTimer.schedule(rectangleTask, 0); //0 = On execute le run imédiatement
-        }
-        if (type == TYPE_ELLIPSE) {
-            initEllipseTask();
-            myTimer.schedule(ellipseTask, 0); //0 = On execute le run imédiatement
-        }
-
+    private void initMoveTask() {
+        System.out.println("******** Init moveTask");
+        moveTask = new MoveTask(myAutomate, this); //<===================================== ICI
     }
 
-    private void reinitTimer() {
+    private void initDeleteTask() {
+        System.out.println("******** Init deleteTask");
+        deleteTask = new DeleteTask(myAutomate, this); //<===================================== ICI
+    }
+
+    private void initTimer(int type) {
         if (myTimer != null) {
             System.out.print("******** Re");
-            myTimer = new Timer();
         }
+        System.out.println("Init myTimer");
+        myTimer = new Timer();
+        switch (type) {
+            case TYPE_RECTANGLE:
+                initRectangleTask();
+                myTimer.schedule(rectangleTask, 0); //0 = On execute le run imédiatement
+                break;
+
+            case TYPE_ELLIPSE:
+                initEllipseTask();
+                myTimer.schedule(ellipseTask, 0); //0 = On execute le run imédiatement
+                break;
+
+            case TYPE_SUPPRIMER:
+                initDeleteTask();
+                myTimer.schedule(deleteTask, 0); //0 = On execute le run imédiatement                
+                break;
+
+            case TYPE_DEPLACER:
+                initMoveTask();
+                myTimer.schedule(moveTask, 0); //0 = On execute le run imédiatement
+                break;
+
+            default:  //Normalement => Cas Impossible
+                System.out.println("Tache inconnue\n");
+        }
+
     }
 
     private void stopTimer() {
         myTimer.cancel();
     }
 
-    /* NOT USED */
-//    private void reinitRectangleTask() {
-//        if (rectangleTask != null) {
-//            System.out.println("******** Restart rectangleTask");
-//            rectangleTask = new CreateRectangleTask(myAutomate, this); //<===================================== ICI
-//        }
-//    }
-    /* CREATION */
+    /* CREATION */ // (#G) <===================================================
     /**
      * Dessine une rectangle avec les couleurs de fond et de contour
      *
@@ -520,7 +559,7 @@ public class AgentGestuel extends JFrame {
     public void creerEllipse(int x, int y, int longueur, int hauteur, Color colorFond, Color colorContour) {
         try {
             System.out.println("Palette:CreerEllipse x=" + x + " y=" + y + " longueur=" + longueur + " hauteur=" + hauteur + " couleurFond=" + convertToPaletteColor(colorFond) + " couleurContour=" + convertToPaletteColor(colorContour));
-            bus.sendMsg("Palette:CreerEllipse x=" + x + " y=" + y + " longueur=" + longueur + " hauteur=" + hauteur + " couleurFond=" + convertToPaletteColor(colorFond)  + " couleurContour=" + convertToPaletteColor(colorContour));
+            bus.sendMsg("Palette:CreerEllipse x=" + x + " y=" + y + " longueur=" + longueur + " hauteur=" + hauteur + " couleurFond=" + convertToPaletteColor(colorFond) + " couleurContour=" + convertToPaletteColor(colorContour));
 
         } catch (IvyException ex) {
             Logger.getLogger(AgentGestuel.class
@@ -557,15 +596,17 @@ public class AgentGestuel extends JFrame {
 
     /*  METHODES SUPLEMENTAIRES */
     /**
-     * Renvoi le nom et la position de l'objet à supprimer
+     * Palette:TesterPoint x=arg1 y=arg2 Teste si le point de coordonnée
+     * (arg1,arg2) est à l’intérieur d’un objet. Si tel est le cas, chaque objet
+     * graphique qui contient ce point renvoie un message du type :
+     * Palette:ResultatTesterPoint x=arg1 y=arg2 nom=arg3
      *
      * @param x
      * @param y
-     * @param nom
      */
-    public void resultatTesterPoint(int x, int y, String nom) {
+    public void testerPoint(int x, int y) {
         try {
-            bus.sendMsg("Palette:ResultatTesterPoint x=" + x + " y=" + y + " nom=" + nom);
+            bus.sendMsg("Palette:TesterPoint x=" + x + " y=" + y);
         } catch (IvyException ex) {
             Logger.getLogger(AgentGestuel.class
                     .getName()).log(Level.SEVERE, null, ex);
