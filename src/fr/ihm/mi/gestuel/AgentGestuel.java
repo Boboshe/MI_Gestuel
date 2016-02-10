@@ -56,6 +56,7 @@ public class AgentGestuel extends JFrame {
 
     private Timer myTimer;
     private CreateRectangleTask rectangleTask;
+    private CreateEllipseTask ellipseTask;
     private final int TYPE_RECTANGLE = 0;
     private final int TYPE_ELLIPSE = 1;
 
@@ -160,7 +161,15 @@ public class AgentGestuel extends JFrame {
                     if (!rectangleTask.isOver()) {
                         rectangleTask.setMyColorFond(couleurFond);
                         rectangleTask.setMyColorContour(couleurContour);
-                        System.out.println("**************** [Couleur]  CouleurFond: " + recognizeColor(couleurFond) + ", CouleurContour: " + recognizeColor(couleurContour));
+                        System.out.println("**************** [Couleur Rectangle]  CouleurFond: " + recognizeColor(couleurFond) + ", CouleurContour: " + recognizeColor(couleurContour));
+                        colorStated = false;
+                    }
+                }
+                if (ellipseTask != null) {
+                    if (!ellipseTask.isOver()) {
+                        ellipseTask.setMyColorFond(couleurFond);
+                        ellipseTask.setMyColorContour(couleurContour);
+                        System.out.println("**************** [Couleur Ellipse]  CouleurFond: " + recognizeColor(couleurFond) + ", CouleurContour: " + recognizeColor(couleurContour));
                         colorStated = false;
                     }
                 }
@@ -242,8 +251,10 @@ public class AgentGestuel extends JFrame {
 //                System.out.println("[IN] Propriété=" + propriete);
 
                 if (propriete.equals("MouseClicked")) {
-
                     //Si on est dans la tâche de récupération de la position...
+
+                    // (#G) <==================================================================
+                    /* RECTANGLE */
                     if (rectangleTask != null) {
                         if (!rectangleTask.isOver()) {
                             System.out.println("positionVoiceStated=" + positionVoiceStated);
@@ -260,6 +271,25 @@ public class AgentGestuel extends JFrame {
                             }//Fin_if_positionVoiceStated?
                         }//fin_rectangleTask.isOver?
                     }//fin_rectangleTask-null?
+
+                    /* ELLIPSE */
+                    if (ellipseTask != null) {
+                        if (!ellipseTask.isOver()) {
+                            System.out.println("positionVoiceStated=" + positionVoiceStated);
+                            //On vérifie que la position à été validée par la voix
+                            //si ce n'est pas le cas, on précise à l'utilisateur qu'il doit le faire
+                            if (!positionVoiceStated) {
+                                System.out.print("**************** [Pointeur]");
+                                System.out.print("Vous devez indiquer la position à la voix, ");
+                                System.out.println("avant de cliquer, pour valider la position.");
+                            } else { //Sinon c'est bon on stocke la position
+                                System.out.print("**************** [Pointeur] Position stockée");
+                                ellipseTask.setMyPosition(new Point(x, y));
+                                positionVoiceStated = false;
+                            }//Fin_if_positionVoiceStated?
+                        }//fin_ellipseTask.isOver?
+                    }//fin_ellipseTask-null?
+                    // (#G) END <===============================================================
                 }//Fin_MouseClicked
 
                 if (propriete.equals("MousePressed")) {
@@ -391,11 +421,11 @@ public class AgentGestuel extends JFrame {
                 break;
             case TYPE_ELLIPSE:
                 System.out.println("Geste CreationEllipse\n");
-                
-//                if (myAutomate.changeState(Etat.CreationEllipse)) {
-//                    //Activation Timer
-//                    initTimer(TYPE_ELLIPSE); //TimerCreationEllipse
-//                }
+
+                if (myAutomate.changeState(Etat.CreationEllipse)) {
+                    //Activation Timer
+                    initTimer(TYPE_ELLIPSE); //TimerCreationEllipse
+                }
                 break;
             case 2:
                 System.out.println("Geste Déplacer\n");
@@ -414,25 +444,21 @@ public class AgentGestuel extends JFrame {
         rectangleTask = new CreateRectangleTask(myAutomate, this); //<===================================== ICI
     }
 
-    
-//    private void initEllipseTask() {
-//        if (ellipseTask != null) {
-//            System.out.println("******** Restart ellipseTask");
-//            ellipseTask = new CreateRectangleTask(myAutomate, this); //<===================================== ICI
-//        }
-//    }
-    
-    
+    private void initEllipseTask() {
+        System.out.println("******** Init ellipseTask");
+        ellipseTask = new CreateEllipseTask(myAutomate, this); //<===================================== ICI
+    }
+
     private void initTimer(int type) {
-        reinitTimer();
+        reinitTimer(); // <=============================== Peut être pas utile...
         System.out.println("Init myTimer");
         if (type == TYPE_RECTANGLE) {
             initRectangleTask();
             myTimer.schedule(rectangleTask, 0); //0 = On execute le run imédiatement
         }
         if (type == TYPE_ELLIPSE) {
-//            initEllipseTask();
-//            myTimer.schedule(ellipseTask, 0); //0 = On execute le run imédiatement
+            initEllipseTask();
+            myTimer.schedule(ellipseTask, 0); //0 = On execute le run imédiatement
         }
 
     }
@@ -449,14 +475,12 @@ public class AgentGestuel extends JFrame {
     }
 
     /* NOT USED */
-    private void reinitRectangleTask() {
-        if (rectangleTask != null) {
-            System.out.println("******** Restart rectangleTask");
-            rectangleTask = new CreateRectangleTask(myAutomate, this); //<===================================== ICI
-        }
-    }
-
-    
+//    private void reinitRectangleTask() {
+//        if (rectangleTask != null) {
+//            System.out.println("******** Restart rectangleTask");
+//            rectangleTask = new CreateRectangleTask(myAutomate, this); //<===================================== ICI
+//        }
+//    }
     /* CREATION */
     /**
      * Dessine une rectangle avec les couleurs de fond et de contour
@@ -481,24 +505,6 @@ public class AgentGestuel extends JFrame {
     }
 
     /**
-     * Dessine une rectangle
-     *
-     * @param x
-     * @param y
-     * @param longueur
-     * @param hauteur
-     */
-    public void creerRectangle(int x, int y, int longueur, int hauteur) {
-        try {
-            bus.sendMsg("Palette:CreerRectangle x=" + x + " y=" + y + " longueur=" + longueur + " hauteur=" + hauteur);
-
-        } catch (IvyException ex) {
-            Logger.getLogger(AgentGestuel.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    /**
      * Dessine une ellipse avec les couleurs de fond et de contour
      *
      * @param x
@@ -513,25 +519,8 @@ public class AgentGestuel extends JFrame {
      */
     public void creerEllipse(int x, int y, int longueur, int hauteur, Color colorFond, Color colorContour) {
         try {
-            bus.sendMsg("Palette:CreerEllipse x=" + x + " y=" + y + " longueur=" + longueur + " hauteur=" + hauteur + " couleurFond=" + colorFond + " couleurContour=" + colorContour);
-
-        } catch (IvyException ex) {
-            Logger.getLogger(AgentGestuel.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    /**
-     * Dessine une ellipse
-     *
-     * @param x
-     * @param y
-     * @param longueur
-     * @param hauteur
-     */
-    public void creerEllipse(int x, int y, int longueur, int hauteur) {
-        try {
-            bus.sendMsg("Palette:CreerEllipse x=" + x + " y=" + y + " longueur=" + longueur + " hauteur=" + hauteur);
+            System.out.println("Palette:CreerEllipse x=" + x + " y=" + y + " longueur=" + longueur + " hauteur=" + hauteur + " couleurFond=" + convertToPaletteColor(colorFond) + " couleurContour=" + convertToPaletteColor(colorContour));
+            bus.sendMsg("Palette:CreerEllipse x=" + x + " y=" + y + " longueur=" + longueur + " hauteur=" + hauteur + " couleurFond=" + convertToPaletteColor(colorFond)  + " couleurContour=" + convertToPaletteColor(colorContour));
 
         } catch (IvyException ex) {
             Logger.getLogger(AgentGestuel.class
