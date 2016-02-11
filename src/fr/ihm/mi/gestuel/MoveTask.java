@@ -18,17 +18,15 @@ import java.util.TimerTask;
  */
 public class MoveTask extends TimerTask {
 
-    // (#G) <==================================================================
     public static final Color DEFAULT_COLOR = Color.BLACK;
     public static final Point DEFAULT_POSITION = new Point(50, 50);
-    private static final long DEFAULT_TIME = 10 * 1000; //temps initialisé à 10sec
+    private static final long DEFAULT_TIME = 15 * 1000; //temps initialisé à 10sec
     private static final int ERROR_NAME = 0;
     private static final int ERROR_POSITION = 1;
 
     private AutomateMI myAutomate;
     private AgentGestuel agentGestuel;
     private long timer;
-    // (#G) END <==============================================================
 
     //Variables qui doivent changer
     private Color myColorFond = DEFAULT_COLOR;
@@ -95,6 +93,8 @@ public class MoveTask extends TimerTask {
             System.out.println("" + msgErreur);
         }
 
+        nameStated = false;
+        positionVoiceStated = false;
         over = true;
     }
 
