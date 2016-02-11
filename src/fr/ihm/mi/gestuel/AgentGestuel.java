@@ -40,7 +40,7 @@ public class AgentGestuel extends JFrame {
     private int xDeb = 0, xFin = 0;
     private int yDeb = 0, yFin = 0;
     private int xCur = 0, yCur = 0;
-    private int xClickedMove = 0, yClickedMove = 0;
+    private int xClicked = 0, yClicked = 0;
     private boolean dragActived = false;
     private String nomObj = "no name";
     private ArrayList<String> listNomObj = new ArrayList<>();
@@ -51,7 +51,7 @@ public class AgentGestuel extends JFrame {
 
     private boolean positionVoiceStated = false;
     private boolean colorVoiceStated = false;
-    private boolean objetVoiceStated = false;
+//    private boolean objetVoiceStated = false;
 
     private Timer myTimer;
 
@@ -182,24 +182,24 @@ public class AgentGestuel extends JFrame {
 //                System.out.println("Color find, colorStated=" + colorStated);
             }
 
-//                        deleteTask.setMyPosition(new Point(xClicked, yClicked));
             private void objectFind() {
                 if (moveTask != null) {
                     if (!moveTask.isOver()) {
                         System.out.println("**************** [Voice Move] Désignation enregistrée");
-                        System.out.println("**************** xClickedMove=" + xClickedMove + ", xClickedMove=" + yClickedMove + "\n");
-                        testerPoint(xClickedMove, yClickedMove);
-                        objetVoiceStated = true;
+                        System.out.println("**************** xClickedMove=" + xClicked + ", xClickedMove=" + yClicked + "\n");
+                        testerPoint(xClicked, yClicked);
+//                        objetVoiceStated = true;
                     }
                 }
-//                if (deleteTask != null) {
-//                    if (!deleteTask.isOver()) {
-//                        System.out.println("**************** [Voice Delete] Désignation enregistrée");
-//                        System.out.println("**************** x=" + xClickedMove + ", y=" + yClickedMove + "\n");
-//                        testerPoint(xClickedMove, yClickedMove);
+
+                if (deleteTask != null) {
+                    if (!deleteTask.isOver()) {
+                        System.out.println("**************** [Voice Delete] Désignation enregistrée");
+                        System.out.println("**************** xClickedMove=" + xClicked + ", xClickedMove=" + yClicked + "\n");
+                        testerPoint(xClicked, yClicked);
 //                        objetVoiceStated = true;
-//                    }
-//                }
+                    }
+                }
             }
 
             private Color recognizeStringColor(String couleur) {
@@ -271,21 +271,32 @@ public class AgentGestuel extends JFrame {
                 int y = new Integer(args[2]);
                 String nom = args[3];
                 if (propriete.equals("ResultatTesterPoint")) {
-         //                    System.out.print("ResultatTesterPoint");
                     //Si on est dans la tache de détermination de l'objet
 
-                    //                    if (moveTask != null) {
-                    //                        if (!moveTask.isOver()) {
-                    nomObj = nom;
-                    System.out.println("Palette:ResultatTesterPoint x=" + x + " y=" + y + " nom=" + nomObj);
-                    moveTask.setName(nomObj);
-                    if (objetVoiceStated) {
-                        objetVoiceStated = false;
-                    }
-         //                          moveTask.setName(nomObj);
+                    if (moveTask != null) {
+                        if (!moveTask.isOver()) {
+                            nomObj = nom;
+                            System.out.println("Palette:ResultatTesterPoint x=" + x + " y=" + y + " nom=" + nomObj);
+                            moveTask.setName(nomObj);
+//                            if (objetVoiceStated) {
+//                                objetVoiceStated = false;
+//                            }
 
-                    //                        }//fin_moveTask.isOver?
-                    //                    }//fin_moveTask-null?
+                        }//fin_moveTask.isOver?
+                    }//fin_moveTask-null?
+
+                    if (deleteTask != null) {
+                        if (!deleteTask.isOver()) {
+                            nomObj = nom;
+                            System.out.println("Palette:ResultatTesterPoint x=" + x + " y=" + y + " nom=" + nomObj);
+                            deleteTask.setName(nomObj);
+//                            if (objetVoiceStated) {
+//                                objetVoiceStated = false;
+//                            }
+
+                        }//fin_deleteTask.isOver?
+                    }//fin_deleteTask-null?
+
                 } //Fin_ResultatTesterPoint
 
             }//Fin_received
@@ -359,16 +370,16 @@ public class AgentGestuel extends JFrame {
                             if (positionVoiceStated) {
                                 System.out.println("**************** [Position - Move] Position stockée");
                                 System.out.println("**************** x=" + x + ", y=" + y + "\n");
-                                Point p = calculValeurXY(x, y, xClickedMove, yClickedMove);
+                                Point p = calculValeurXY(x, y, xClicked, yClicked);
                                 System.out.println("**************** p.x=" + p.x + ", p.y=" + p.y + "\n");
                                 moveTask.setMyPosition(p);
                                 positionVoiceStated = false;
                             }//Fin_if_positionVoiceStated?
                             else {
-                                xClickedMove = x;
-                                yClickedMove = y;
+                                xClicked = x;
+                                yClicked = y;
                                 System.out.println("**************** [Objet - Move] Désignation en attente d'enregistrement...");
-                                System.out.println("**************** x=" + xClickedMove + ", y=" + yClickedMove);
+                                System.out.println("**************** x=" + xClicked + ", y=" + yClicked);
                                 System.out.println(" /!\\ N'oubliez pas d'indiquer l'objet à la voix pour valider l'objet désigné\n");
                             }
 
@@ -376,22 +387,18 @@ public class AgentGestuel extends JFrame {
                     }//fin_moveTask-null?
 
                     /* SUPPRIMER */
-//                    if (deleteTask != null) {
-//                        if (!deleteTask.isOver()) {
-//
-//                            if (positionVoiceStated) {
-//                                System.out.print("**************** [Position - Delete] Position stockée");
-//                                deleteTask.setMyPosition(new Point(x, y));
-//                                positionVoiceStated = false;
-//                            }//Fin_if_positionVoiceStated?
-//
-//                            xClickedMove = x;
-//                            yClickedMove = y;
-//                            System.out.println("**************** [Objet - Delete] Désignation en attente d'enregistrement...");
-//                            System.out.println(" /!\\ N'oubliez pas d'indiquer l'objet à la voix pour valider l'objet désigné\n");
-//
-//                        }//fin_moveTask.isOver?
-//                    }//fin_moveTask-null?
+                    if (deleteTask != null) {
+                        if (!deleteTask.isOver()) {
+
+                            xClicked = x;
+                            yClicked = y;
+                            System.out.println("**************** [Objet - Delete] Désignation en attente d'enregistrement...");
+                            System.out.println("**************** x=" + xClicked + ", y=" + yClicked);
+                            System.out.println(" /!\\ N'oubliez pas d'indiquer l'objet à la voix pour valider l'objet désigné\n");
+
+                        }//fin_deleteTask.isOver?
+                    }//fin_deleteTask-null?       
+
                     // (#G) END <===============================================================
                 }//Fin_MouseClicked
 
@@ -607,14 +614,14 @@ public class AgentGestuel extends JFrame {
                 myTimer.schedule(ellipseTask, 0); //0 = On execute le run imédiatement
                 break;
 
-            case TYPE_SUPPRIMER:
-                initDeleteTask();
-                myTimer.schedule(deleteTask, 0); //0 = On execute le run imédiatement                
-                break;
-
             case TYPE_DEPLACER:
                 initMoveTask();
                 myTimer.schedule(moveTask, 0); //0 = On execute le run imédiatement
+                break;
+
+            case TYPE_SUPPRIMER:
+                initDeleteTask();
+                myTimer.schedule(deleteTask, 0); //0 = On execute le run imédiatement                
                 break;
 
             default:  //Normalement => Cas Impossible
@@ -693,9 +700,10 @@ public class AgentGestuel extends JFrame {
     /**
      * Supprime l'objet désigné
      */
-    public void supprimer(String nom, int x, int y) {
+    public void supprimer(String nom) {
         try {
-            bus.sendMsg("Palette:SupprimerObjet nom=" + nom + " x=" + x + " y=" + y);
+            System.out.println("Palette:SupprimerObjet nom=" + nom);
+            bus.sendMsg("Palette:SupprimerObjet nom=" + nom);
         } catch (IvyException ex) {
             Logger.getLogger(AgentGestuel.class
                     .getName()).log(Level.SEVERE, null, ex);

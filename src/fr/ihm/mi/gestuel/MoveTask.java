@@ -1,3 +1,4 @@
+// (#G) <==================================================================
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -5,11 +6,8 @@
  */
 package fr.ihm.mi.gestuel;
 
-import static fr.ihm.mi.gestuel.AgentGestuel.DEFAULT_COLOR;
-import static fr.ihm.mi.gestuel.AgentGestuel.DEFAULT_POSITION;
 import java.awt.Color;
 import java.awt.Point;
-import java.util.ArrayList;
 import java.util.TimerTask;
 
 /**
@@ -20,7 +18,7 @@ public class MoveTask extends TimerTask {
 
     public static final Color DEFAULT_COLOR = Color.BLACK;
     public static final Point DEFAULT_POSITION = new Point(50, 50);
-    private static final long DEFAULT_TIME = 15 * 1000; //temps initialisé à 10sec
+    private static final long DEFAULT_TIME = 10 * 1000; //temps initialisé à 10sec
     private static final int ERROR_NAME = 0;
     private static final int ERROR_POSITION = 1;
 
@@ -90,6 +88,8 @@ public class MoveTask extends TimerTask {
                 constituerMsgErreur(ERROR_POSITION);
             }
             System.out.println("**************** [Timer Deplacer] ### ECHEC du déplacement ###");
+            myAutomate.changeState(AutomateMI.Etat.Idle);
+            System.out.println("****************  [Timer Deplacer] Retour à Idle");
             System.out.println("" + msgErreur);
         }
 
@@ -99,8 +99,7 @@ public class MoveTask extends TimerTask {
     }
 
     /**
-     * Récupère le nom de l'objet à déplacer.
-     *
+     * Récupère le nom de l'objet à supprimer.
      * @param name
      */
     public void setName(String name) {
@@ -109,9 +108,7 @@ public class MoveTask extends TimerTask {
     }
 
     /**
-     * Actualisation de la position (x,y) Si cette fonction n'est pas utilisée,
-     * le rectangle est créé avec les valeurs par défaut
-     *
+     * Récupère la position
      * @param myPosition
      */
     public void setMyPosition(Point myPosition) {
@@ -120,9 +117,7 @@ public class MoveTask extends TimerTask {
     }
 
     /**
-     * Actualisation de la couleur du fond du rectangle Si cette fonction n'est
-     * pas utilisée, le rectangle est créé avec la couleur du fond par défaut
-     *
+     * Récupère la couleur du fond
      * @param myColorFond
      */
     public void setMyColorFond(Color myColorFond) {
@@ -130,10 +125,7 @@ public class MoveTask extends TimerTask {
     }
 
     /**
-     * Actualisation de la couleur du contour du rectangle Si cette fonction
-     * n'est pas utilisée, le rectangle est créé avec la couleur du contour par
-     * défaut
-     *
+     * Récupère la couleur du contour
      * @param myColorContour
      */
     public void setMyColorContour(Color myColorContour) {
@@ -154,3 +146,4 @@ public class MoveTask extends TimerTask {
     }
 
 }
+// (#G) END <==================================================================
