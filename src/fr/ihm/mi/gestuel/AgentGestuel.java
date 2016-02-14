@@ -51,6 +51,7 @@ public class AgentGestuel extends JFrame {
 
     private boolean positionVoiceStated = false;
     private boolean colorVoiceStated = false;
+    private boolean deCetteCouleur = false;
 //    private boolean objetVoiceStated = false;
 
     private Timer myTimer;
@@ -131,6 +132,8 @@ public class AgentGestuel extends JFrame {
                     //<============================================ ICI LE PLUS DUR
                     if (args[0].contains("de cette couleur")) {
                         //Il faut capter la couleur de l'objet désigné
+                        System.out.println("[COULEUR RECONNU] de cette couleur");
+                        deCetteCouleur();
                     }
 
                     //Objet
@@ -202,33 +205,46 @@ public class AgentGestuel extends JFrame {
                 }
             }
 
-            private Color recognizeStringColor(String couleur) {
-                //Couleur par défaut
-                Color color = Color.BLACK;
-
-                if (couleur.equals("noir")) {
-                    color = Color.BLACK;
+            private void deCetteCouleur() {
+                if (rectangleTask != null) {
+                    if (!rectangleTask.isOver()) {
+                        deCetteCouleur = true;
+                    }
                 }
-                if (couleur.equals("bleu")) {
-                    color = Color.BLUE;
+                if (ellipseTask != null) {
+                    if (!ellipseTask.isOver()) {
+                        deCetteCouleur = true;
+                    }
                 }
-                if (couleur.equals("rouge")) {
-                    color = Color.RED;
-                }
-                if (couleur.equals("vert")) {
-                    color = Color.GREEN;
-                }
-                if (couleur.equals("jaune")) {
-                    color = Color.YELLOW;
-                }
-                if (couleur.equals("orange")) {
-                    color = Color.ORANGE;
-                }
-                //de cette couleur
-                return color;
             }
 
         });
+    }
+
+    private Color recognizeStringColor(String couleur) {
+        //Couleur par défaut
+        Color color = Color.BLACK;
+
+        if (couleur.equals("noir") || couleur.equals("black")) {
+            color = Color.BLACK;
+        }
+        if (couleur.equals("bleu") || couleur.equals("blue")) {
+            color = Color.BLUE;
+        }
+        if (couleur.equals("rouge") || couleur.equals("red")) {
+            color = Color.RED;
+        }
+        if (couleur.equals("vert") || couleur.equals("green")) {
+            color = Color.GREEN;
+        }
+        if (couleur.equals("jaune") || couleur.equals("yellow")) {
+            color = Color.YELLOW;
+        }
+        if (couleur.equals("orange")) {
+            color = Color.ORANGE;
+        }
+        //de cette couleur
+        return color;
     }
 
     public String recognizeColor(Color c) {
@@ -260,6 +276,38 @@ public class AgentGestuel extends JFrame {
 
     /* Palette => EvtSouris */
     private void palette(Ivy bus) throws IvyException {
+
+        bus.bindMsg("^Palette:(.*) nom=(.*) x=(.*) y=(.*) longueur=(.*) hauteur=(.*) couleurFond=(.*) couleurContour=(.*)", new IvyMessageListener() {
+            @Override
+            public void receive(IvyClient ic, String[] args) {
+                String propriete = args[0];
+                String nom = args[1];
+                int x = new Integer(args[2]);
+                int y = new Integer(args[3]);
+                int longueur = new Integer(args[4]);
+                int hauteur = new Integer(args[5]);
+                String couleurFond = args[6];
+                String couleurContour = args[7];
+                if (propriete.equals("Info")) {
+
+                    System.out.println("Palette:Info nom=" + nom + " x=" + x + " y=" + y + " longueur=" + longueur + " hauteur=" + hauteur + " couleurFond=" + couleurFond + " couleurContour=" + couleurFond);
+                    //Convertir la String de la couleur en une couleur normal afin de la stocker
+                    if (rectangleTask != null) {
+                        if (!rectangleTask.isOver()) {
+                            rectangleTask.setMyColorContour(recognizeStringColor(couleurContour));
+                            rectangleTask.setMyColorFond(recognizeStringColor(couleurFond));
+                        }
+                    }
+                    
+                    if (ellipseTask != null) {
+                        if (!ellipseTask.isOver()) {
+                            ellipseTask.setMyColorContour(recognizeStringColor(couleurContour));
+                            ellipseTask.setMyColorFond(recognizeStringColor(couleurFond));
+                        }
+                    }
+                }
+            }
+        });
 
         //Bus ResultatTesterPoint
         bus.bindMsg("^Palette:(.*) x=(.*) y=(.*) nom=(.*)", new IvyMessageListener() {
@@ -295,8 +343,23 @@ public class AgentGestuel extends JFrame {
 //                            }
 
                         }//fin_deleteTask.isOver?
-                    }//fin_deleteTask-null?
+                    }//fin_deleteTask-null?                    
 
+                    if (rectangleTask != null) {
+                        if (!rectangleTask.isOver()) {
+                            nomObj = nom;
+                            System.out.println("> DemanderInfo nom=" + nomObj);
+                            demanderInfo(nomObj);
+                        }
+                    }
+
+                    if (ellipseTask != null) {
+                        if (!ellipseTask.isOver()) {
+                            nomObj = nom;
+                            System.out.println("> DemanderInfo nom=" + nomObj);
+                            demanderInfo(nomObj);
+                        }
+                    }
                 } //Fin_ResultatTesterPoint
 
             }//Fin_received
@@ -304,7 +367,7 @@ public class AgentGestuel extends JFrame {
         });
 
         //Bus Evnmt souris
-        bus.bindMsg("^Palette:(.*) x=(.*) y=(.*)", new IvyMessageListener() {
+        bus.bindMsg("^Palette:Mouse(.*) x=(.*) y=(.*)", new IvyMessageListener() {
 
             @Override
             public void receive(IvyClient ic, String[] args) {
@@ -312,6 +375,10 @@ public class AgentGestuel extends JFrame {
                 String propriete = args[0];
                 int x = new Integer(args[1]);
                 int y;
+                // <================================================================================================ 
+                /*
+                y = new Integer(args[2]);
+                 */
                 if (!args[2].contains("nom")) {
                     y = new Integer(args[2]);
                 } else {
@@ -321,43 +388,55 @@ public class AgentGestuel extends JFrame {
                 }
 
 //                System.out.println("[IN] Propriété=" + propriete);
-                if (propriete.equals("MouseClicked")) {
+                if (propriete.equals("Clicked")) {
                     //Si on est dans la tâche de récupération de la position...
 
                     // (#G) <==================================================================
                     /* RECTANGLE */
                     if (rectangleTask != null) {
                         if (!rectangleTask.isOver()) {
-                            System.out.println("positionVoiceStated=" + positionVoiceStated);
-                            //On vérifie que la position à été validée par la voix
-                            //si ce n'est pas le cas, on précise à l'utilisateur qu'il doit le faire
-                            if (!positionVoiceStated) {
+//                            System.out.println("positionVoiceStated=" + positionVoiceStated);
+
+                            if (deCetteCouleur) {
+                                System.out.println("**************** [Couleur - Rectangle] de cette couleur");
+                                testerPoint(x, y);
+                                deCetteCouleur = false;
+                            } else if (!positionVoiceStated) {
+                                //On vérifie que la position à été validée par la voix
+                                //si ce n'est pas le cas, on précise à l'utilisateur qu'il doit le faire
                                 System.out.print("**************** [Position - Rectangle]");
                                 System.out.print("Vous devez indiquer la position à la voix, ");
                                 System.out.println("avant de cliquer, pour valider la position.");
                             } else { //Sinon c'est bon on stocke la position
-                                System.out.print("**************** [Position - Rectangle] Position stockée");
+                                System.out.println("**************** [Position - Rectangle] Position stockée");
                                 rectangleTask.setMyPosition(new Point(x, y));
                                 positionVoiceStated = false;
                             }//Fin_if_positionVoiceStated?
+
                         }//fin_rectangleTask.isOver?
                     }//fin_rectangleTask-null?
 
                     /* ELLIPSE */
                     if (ellipseTask != null) {
                         if (!ellipseTask.isOver()) {
-                            System.out.println("positionVoiceStated=" + positionVoiceStated);
-                            //On vérifie que la position à été validée par la voix
-                            //si ce n'est pas le cas, on précise à l'utilisateur qu'il doit le faire
-                            if (!positionVoiceStated) {
+//                            System.out.println("positionVoiceStated=" + positionVoiceStated);
+
+                            if (deCetteCouleur) {
+                                System.out.println("**************** [Couleur - Rectangle] de cette couleur");
+                                testerPoint(x, y);
+                                deCetteCouleur = false;
+                            } else if (!positionVoiceStated) {
+                                //On vérifie que la position à été validée par la voix
+                                //si ce n'est pas le cas, on précise à l'utilisateur qu'il doit le faire
                                 System.out.print("**************** [Position - Ellipse]");
                                 System.out.print("Vous devez indiquer la position à la voix ");
                                 System.out.println("avant de cliquer, pour valider la position.");
                             } else { //Sinon c'est bon on stocke la position
-                                System.out.print("**************** [Position - Ellipse] Position stockée");
+                                System.out.println("**************** [Position - Ellipse] Position stockée");
                                 ellipseTask.setMyPosition(new Point(x, y));
                                 positionVoiceStated = false;
                             }//Fin_if_positionVoiceStated?
+
                         }//fin_ellipseTask.isOver?
                     }//fin_ellipseTask-null?                    
                     // (#G) END <===============================================================
@@ -402,18 +481,18 @@ public class AgentGestuel extends JFrame {
                     // (#G) END <===============================================================
                 }//Fin_MouseClicked
 
-                if (propriete.equals("MousePressed")) {
+                if (propriete.equals("Pressed")) {
                     xDeb = x;
                     yDeb = y;
                 }
-                if (propriete.equals("MouseDragged")) {
+                if (propriete.equals("Dragged")) {
                     xCur = x;
                     yCur = y;
                     stockPointsInStroke(xCur, yCur);
                     dragActived = true;
                 }
 
-                if (propriete.equals("MouseReleased")) {
+                if (propriete.equals("Released")) {
                     xFin = x;
                     yFin = y;
                     if (dragActived) {
@@ -723,6 +802,21 @@ public class AgentGestuel extends JFrame {
     public void testerPoint(int x, int y) {
         try {
             bus.sendMsg("Palette:TesterPoint x=" + x + " y=" + y);
+        } catch (IvyException ex) {
+            Logger.getLogger(AgentGestuel.class
+                    .getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    /**
+     * Palette:DemanderInfo nom=arg1 Récolte les données
+     *
+     * @param nom
+     */
+    public void demanderInfo(String nom) {
+        try {
+            System.out.println("Palette:DemanderInfo nom=" + nom);
+            bus.sendMsg("Palette:DemanderInfo nom=" + nom);
         } catch (IvyException ex) {
             Logger.getLogger(AgentGestuel.class
                     .getName()).log(Level.SEVERE, null, ex);
